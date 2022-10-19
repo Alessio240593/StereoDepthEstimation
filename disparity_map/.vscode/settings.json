@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "stop_token": "cpp",
+        "iostream": "cpp"
+    }
+}
