@@ -1,6 +1,0 @@
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/CMakeFiles/calibration.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/CMakeFiles/rebuild_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/lib/CMakeFiles/lib.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/lib/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/calibration/build/lib/CMakeFiles/rebuild_cache.dir

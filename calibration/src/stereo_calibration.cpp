@@ -99,13 +99,15 @@ int main()
   Mat new_mtxL, new_mtxR;
 
   // Calibrating left camera
-  calibrateCamera(objpoints,
+  double error = calibrateCamera(objpoints,
                       imgpointsL,
                       grayL.size(),
                       mtxL,
                       distL,
                       R_L,
                       T_L);
+
+    std::cout << "Reprojection error left camera= " << error << "\n";
 
   new_mtxL = getOptimalNewCameraMatrix(mtxL,
                                 distL,
@@ -115,13 +117,27 @@ int main()
                                 0);
 
   // Calibrating right camera
-  calibrateCamera(objpoints,
+  error = calibrateCamera(objpoints,
                       imgpointsR,
                       grayR.size(),
                       mtxR,
                       distR,
                       R_R,
                       T_R);
+
+  std::cout << "Reprojection error right camera= " << error << "\n";
+
+  /*
+  for (auto i = 0; i < T_R.cols + 2; i++)
+  {
+    for (auto j = 0; j < T_R.rows; j++)
+    {
+      T_R.at<double>(i, j) = T_R.at<double>(i, j) * 2.4;
+    }
+  }
+
+  cout << T_R.row(0) << endl;
+  */
 
   new_mtxR = getOptimalNewCameraMatrix(mtxR,
                                 distR,
@@ -139,7 +155,8 @@ int main()
 
   // This step is performed to transformation between the two cameras and calculate Essential and 
   // Fundamenatl matrix
-  cv::stereoCalibrate(objpoints,
+  //  This function finds the intrinsic parameters for each of the two cameras and the extrinsic parameters between the two cameras.
+  error = cv::stereoCalibrate(objpoints,
                       imgpointsL,
                       imgpointsR,
                       new_mtxL,
@@ -153,13 +170,24 @@ int main()
                       Fmat,
                       flag,
                       cv::TermCriteria(cv::TermCriteria::MAX_ITER + cv::TermCriteria::EPS, 30, 1e-6));
+  
+  std::cout << "Reprojection error = " << error << "\n";
 
-  createStereoCameraSetup(new_mtxL, distL, new_mtxR, distR, Rot, Trns);   
+  /*
+  cout << Trns <<endl;
+    for (auto j = 0; j < Trns.rows; j++)
+    {
+      Trns.at<double>(j, 0) = Trns.at<double>(j, 0) * 2.4;
+    }
+
+  cout << Trns <<endl;
+  */
   
   cv::Mat rect_l, rect_r, proj_mat_l, proj_mat_r, Q;
 
   // Once we know the transformation between the two cameras we can perform 
   // stereo rectification
+  // retifica l'asse y così da far coincidere l'origine infatti così facendo la scanline è solo lungo l'asse x poichè la y coincide
   cv::stereoRectify(new_mtxL,
                     distL,
                     new_mtxR,
@@ -176,7 +204,7 @@ int main()
 
   cv::Mat Left_Stereo_Map1, Left_Stereo_Map2;
   cv::Mat Right_Stereo_Map1, Right_Stereo_Map2;
-
+  
   cv::initUndistortRectifyMap(new_mtxL,
                               distL,
                               rect_l,
@@ -185,6 +213,7 @@ int main()
                               CV_16SC2,
                               Left_Stereo_Map1,
                               Left_Stereo_Map2);
+                              
 
   cv::initUndistortRectifyMap(new_mtxR,
                               distR,
@@ -195,22 +224,21 @@ int main()
                               Right_Stereo_Map1,
                               Right_Stereo_Map2);
 
-  cv::FileStorage cv_file = cv::FileStorage("../calibration_setup/distortion_parameters.xml", cv::FileStorage::WRITE);
-  cv_file.write("Left_Stereo_Map_x",Left_Stereo_Map1);
-  cv_file.write("Left_Stereo_Map_y",Left_Stereo_Map2);
-  cv_file.write("Right_Stereo_Map_x",Right_Stereo_Map1);
-  cv_file.write("Right_Stereo_Map_y",Right_Stereo_Map2);
-
- 
-  /*
-  cv::imshow("Left image before rectification",frameL);
-  cv::imshow("Right image before rectification",frameR);
-
+  createStereoCameraSetup(new_mtxL, distL, new_mtxR, distR, Rot, Trns, Left_Stereo_Map1, Left_Stereo_Map2, Right_Stereo_Map1, Right_Stereo_Map2);   
 
   cv::Mat Left_nice, Right_nice;
 
-  // Apply the calculated maps for rectification and undistortion 
-  cv::remap(frameL,
+  std::cout << "Running left images distortion retification..." << std::endl;
+
+  for (int file{0}; file < imagesL.size(); file++) {
+    frameL = imread(imagesL[file]);
+
+    cv::imshow("Left image before rectification",frameL);
+    moveWindow("Left image before rectification", 0, 0);
+
+    cv::waitKey(0);
+
+    cv::remap(frameL,
             Left_nice,
             Left_Stereo_Map1,
             Left_Stereo_Map2,
@@ -218,7 +246,25 @@ int main()
             cv::BORDER_CONSTANT,
             0);
 
-  cv::remap(frameR,
+    cv::imshow("Left image after rectification",frameL);
+    moveWindow("Left image after rectification", 900, 0);
+
+    cv::waitKey(0);
+
+    destroyAllWindows();
+  }
+
+  std::cout << "Running right images distortion retification" << endl;
+
+  for (int file{0}; file < imagesR.size(); file++) {
+    frameR = imread(imagesR[file]);
+
+    cv::imshow("Right image before rectification",frameR);
+    moveWindow("Right image before rectification", 0, 0);
+
+    cv::waitKey(0);
+
+    cv::remap(frameR,
             Right_nice,
             Right_Stereo_Map1,
             Right_Stereo_Map2,
@@ -226,32 +272,15 @@ int main()
             cv::BORDER_CONSTANT,
             0);
 
+      cv::imshow("Right image after rectification",frameR);
+      moveWindow("Right image after rectification", 900, 0);
 
-  cv::imshow("Left image after rectification",Left_nice);
-  cv::imshow("Right image after rectification",Right_nice);
+      cv::waitKey(0);
 
-  cv::waitKey(0);
+      destroyAllWindows();
+  }
 
-  cv::Mat Left_nice_split[3], Right_nice_split[3];
-
-  std::vector<cv::Mat> Anaglyph_channels;
-
-  cv::split(Left_nice, Left_nice_split);
-  cv::split(Right_nice, Right_nice_split);
-
-  Anaglyph_channels.push_back(Right_nice_split[0]);
-  Anaglyph_channels.push_back(Right_nice_split[1]);
-  Anaglyph_channels.push_back(Left_nice_split[2]);
-
-  cv::Mat Anaglyph_img;
-
-  cv::merge(Anaglyph_channels, Anaglyph_img);
-
-  cv::imshow("Anaglyph image", Anaglyph_img);
-  cv::waitKey(0);
-  */               
-
-  cout << "End of calibratin phase, setup paramaters are in calibration_setup directory." << endl;
+  std::cout << "End of calibratin phase, setup paramaters are in calibration_setup directory." << endl;
 
   return 0;
 }

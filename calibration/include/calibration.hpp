@@ -9,4 +9,5 @@
 #include <opencv2/core.hpp>
 
 void createStereoCameraSetup(cv::Mat mtxL, cv::Mat distL, cv::Mat mtxR,
-                             cv::Mat distR, cv::Mat R, cv::Mat T);
+                             cv::Mat distR, cv::Mat R, cv::Mat T, cv::Mat Left_Stereo_Map1,
+                             cv::Mat Left_Stereo_Map2, cv::Mat Right_Stereo_Map1, cv::Mat Right_Stereo_Map2);
