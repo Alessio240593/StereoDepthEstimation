@@ -1,0 +1,7 @@
+
+#ignore vscode metadata
+.vscode
+#ignore bin directory
+bin
+#ignore build directory
+build
