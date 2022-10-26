@@ -1,3 +1,0 @@
-/home/alessio/Scrivania/stage/tesi/codice/cpp/disparity_map/build/CMakeFiles/DisparityMap.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/disparity_map/build/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/disparity_map/build/CMakeFiles/rebuild_cache.dir

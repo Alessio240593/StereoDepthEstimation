@@ -8,6 +8,16 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core.hpp>
 
-void createStereoCameraSetup(cv::Mat mtxL, cv::Mat distL, cv::Mat mtxR,
-                             cv::Mat distR, cv::Mat R, cv::Mat T, cv::Mat Left_Stereo_Map1,
-                             cv::Mat Left_Stereo_Map2, cv::Mat Right_Stereo_Map1, cv::Mat Right_Stereo_Map2);
+/**
+ * Questa funzione scrive i parametri di configurazine della camera nel file: intrinsicExtrinsicParameters.yml, inoltre salva
+ * la mappa delle distorsioni per ogni camera nel file: cv::Mat Right_Stereo_Map1.
+ * 
+ * @param cv::Mat mtx → matrice degli intrinseci della camera.
+ * @param cv::Mat dist → vettore dei coefficienti di distorsione della camera.
+ * @param cv::Mat R → matrice di rotazione.
+ * @param cv::Mat T → vettore di traslazione.
+ * 
+ * @return void
+**/        
+void createStereoCameraSetup(cv::Mat mtx, cv::Mat dist,
+                             cv::Mat R, cv::Mat T);

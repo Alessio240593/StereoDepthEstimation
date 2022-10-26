@@ -1,6 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project( Calibration )
-find_package( OpenCV REQUIRED )
-add_library(lib STATIC calibration.cpp)
-target_link_libraries( lib ${OpenCV_LIBS} )
-target_include_directories (lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
