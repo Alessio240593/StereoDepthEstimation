@@ -1,6 +1,0 @@
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/CMakeFiles/CrossCorrelation.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/CMakeFiles/rebuild_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/src/CMakeFiles/lib.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/src/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/PixelMatching/build/src/CMakeFiles/rebuild_cache.dir

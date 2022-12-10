@@ -1,2 +1,0 @@
-/bin/ar qc liblib.a CMakeFiles/lib.dir/CrossCorrelation.cpp.o
-/bin/ranlib liblib.a

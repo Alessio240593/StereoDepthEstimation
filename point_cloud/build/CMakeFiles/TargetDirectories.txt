@@ -1,3 +1,0 @@
-/home/alessio/Scrivania/stage/tesi/codice/cpp/point_cloud/build/CMakeFiles/PointCloud.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/point_cloud/build/CMakeFiles/edit_cache.dir
-/home/alessio/Scrivania/stage/tesi/codice/cpp/point_cloud/build/CMakeFiles/rebuild_cache.dir
