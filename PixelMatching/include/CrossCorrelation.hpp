@@ -36,26 +36,27 @@
 #include <iostream>
 #include <cstdlib>
 
-/// Limite inferiore alla dimensione del kernel
+/// Minima dimensione del kernel
 #define KERNEL_LIMIT 3
 
 
 /**
  * @brief Esegue il padding della matrice src
- * @note La dimensione della matrice di input deve essere maggiore della dimensione del kernel, il kernel deve avere dimensione minima
- * definita come KERNEL_LIMIT X KERNEL_LIMIT, la dimensione della matrice sorgente deve essere almeno KERNEL_LIMIT X KERNEL_LIMIT
+ * @note  La dimensione della matrice di input deve essere maggiore della dimensione del kernel, il kernel deve avere dimensione minima
+ *        definita come KERNEL_LIMIT X KERNEL_LIMIT, la dimensione della matrice sorgente deve essere almeno KERNEL_LIMIT X KERNEL_LIMIT
  * 
- * @param[in] src Matrice di input
- * @param[out] dst  Matrice di destinazione con paddding
- * @param[in] src_rows Numero di righe della matrice sorgente
- * @param[in] src_cols Numero di colonne della matrice sorgente
- * @param[in] dst_rows Numero di righe della matrice destinazione
- * @param[in] dst_cols Numero di colonne della matrice destinazione
- * @param[in] kernel_rows Numero di righe del kernel
- * @param[in] kernel_cols Numero di colonne del kernel
- * @tparam T Tipo della matrice sorgente, della matrice destinazione e della matrice kernel
+ * @tparam      T             Tipo della matrice sorgente, della matrice destinazione e della matrice kernel
  * 
- * @return void
+ * @param[in]   src           Matrice di input
+ * @param[out]  dst           Matrice di destinazione con paddding
+ * @param[in]   src_rows      Numero di righe della matrice sorgente
+ * @param[in]   src_cols      Numero di colonne della matrice sorgente
+ * @param[in]   dst_rows      Numero di righe della matrice destinazione
+ * @param[in]   dst_cols      Numero di colonne della matrice destinazione
+ * @param[in]   kernel_rows   Numero di righe del kernel
+ * @param[in]   kernel_cols   Numero di colonne del kernel
+ * 
+ * @return      void
 */
 //sistemare il padding
 template <typename T>
@@ -129,14 +130,14 @@ void padding(const T           *src,
 /**
  * @brief Controlla se i parametri in input sono accettati dalla funzione
  *
- * @param[in] src Matrice di input
- * @param[out] kernel Matrice kernel
- * @param[in] kernel_size Dimensione della matrice kernel
- * @param[in] matrix_width Lunghezza della matrice sorgente
+ * @tparam      T             Tipo della matrice sorgente e della matrice kernel
  * 
- * @tparam T Tipo della matrice sorgente, della matrice kernel
+ * @param[in]   src           Matrice di input
+ * @param[out]  kernel        Matrice kernel
+ * @param[in]   kernel_size   Dimensione della matrice kernel
+ * @param[in]   matrix_width  Lunghezza della matrice sorgente
  * 
- * @return void
+ * @return      void
 */
 template <typename T>
 void inputParsing(const T           *src, 
@@ -180,17 +181,18 @@ void inputParsing(const T           *src,
 
 /**
  * @brief Calcola la cross-correlazione tra la matrice sorgente e il kernel prelevato dalla seconda matrice sorgente
- * @note La matrice src e il kernel devono avere la stessa altezza, il kernel deve essere più piccolo della matrice
- *       sorgente, il kernel deve avere una dimensione dispari e deve essere una matrice quadrata
+ * @note  La matrice src e il kernel devono avere la stessa altezza, il kernel deve essere più piccolo della matrice
+ *        sorgente, il kernel deve avere una dimensione dispari e deve essere una matrice quadrata
  *
- * @param[in] src Matrice di input
- * @param[out] kernel Matrice kernel
- * @param[in] kernel_size Dimensione della matrice kernel
- * @param[in] matrix_width Lunghezza della matrice sorgente
+ * @tparam      T               Tipo della matrice sorgente e della matrice kernel
  * 
- * @tparam T Tipo della matrice sorgente, della matrice kernel
+ * @param[in]   src             Matrice di input
+ * @param[out]  kernel          Matrice kernel
+ * @param[in]   kernel_size     Dimensione della matrice kernel
+ * @param[in]   matrix_width    Lunghezza della matrice sorgente
  * 
  * @return Ritorna la posizione in cui la cross-correlazione assume il massimo valore
+ * @retval std::size_t
 */
 template <typename T>
 std::size_t argMaxCorr(const T           *src, 
@@ -228,16 +230,16 @@ std::size_t argMaxCorr(const T           *src,
 
 /**
  * @brief Copia nella matrice kernel una porzione di src della stessa grandezza.
- * @note matrice src e il kernel devono avere la stessa altezza, il kernel deve essere più piccolo della matrice
- *       sorgente, il kernel deve avere una dimensione dispari e deve essere una matrice quadrata
+ * @note  Matrice src e il kernel devono avere la stessa altezza, il kernel deve essere più piccolo della matrice
+ *        sorgente, il kernel deve avere una dimensione dispari e deve essere una matrice quadrata
  * 
- * @param[in] src Prima matrice di input
- * @param[out] kernel Matrice kernel
- * @param[in] pos Indica la posizione del pixel centrale  
- * @param[in] kernel_size Dimensione della matrice kernel
- * @param[in] matrix_width Lunghezza della matrice sorgente
+ * @tparam      T               Tipo della matrice sorgente e della matrice kernel
  * 
- * @tparam T Tipo della matrice sorgente e della matrice kernel
+ * @param[in]   src             Prima matrice di input
+ * @param[out]  kernel          Matrice kernel
+ * @param[in]   pos             Indica la posizione del pixel centrale  
+ * @param[in]   kernel_size     Dimensione della matrice kernel
+ * @param[in]   matrix_width    Lunghezza della matrice sorgente
  * 
  * @return void
 */
@@ -268,15 +270,15 @@ void copyElements(const T           *src,
 
 /**
  * @brief Calcola la cross-correlazione tra src1 e src2 con un kernel di dimensione height X height
- * @note Le matrici src1 e src2 devono avere dimensione height X width
+ * @note  Le matrici src1 e src2 devono avere dimensione height X width
  * 
- * @param[in] src1 Prima matrice di input
- * @param[in] src2 Seconda matrice di input
- * @param[out] dst Vettore destinazione
- * @param[in] height Dimensione del kernel
- * @param[in] width Lunghezza delle due matrici
+ * @tparam      T         Tipo delle matrici sorgenti e destinazione 
  * 
- * @tparam T Tipo delle matrici sorgenti e destinazione 
+ * @param[in]   src1      Prima matrice di input
+ * @param[in]   src2      Seconda matrice di input
+ * @param[out]  dst       Vettore destinazione
+ * @param[in]   height    Dimensione del kernel
+ * @param[in]   width     Lunghezza delle due matrici
  * 
  * @return void
 */
@@ -290,20 +292,26 @@ void argMaxCorrVector(const T           *src1,
     inputParsing(src1, src2, height, width);
 
     if (!dst) {
-        std::cout << "Invalid destination matrix" << std::endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Invalid destination matrix" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE); 
     }
 
     T *k = new(std::nothrow) T[height * height];
 
     if (!k) {
-        std::cout << "Memory allocation failed" << std::endl;
-        exit(EXIT_FAILURE);
+        std::cerr << "Memory allocation failed" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE); 
     }
 
     for (size_t i = 0; i < width - (height - 1); i++) {
-        copyElements<uint8_t>(src2, k, i, height, width);
-        *(dst + i) = argMaxCorr<uint8_t>(src1, k, height, width);
+        copyElements<T>(src2, k, i, height, width);
+        *(dst + i) = argMaxCorr<T>(src1, k, height, width);
     }
 
     delete k;
