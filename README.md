@@ -22,9 +22,18 @@ ComputerVision contiene l'implementazione in c++ del calcolo della profondità p
 
 
 ## Dipendencies
-point_cloud project require [PCL library](https://pointclouds.org/), on Ubuntu:
+The project require [CMake](https://cmake.org/), [Make](https://www.gnu.org/software/make/), [doxygen](https://www.doxygen.nl/), [gcc](https://gcc.gnu.org/). On Ubuntu:
 ``` bash
-sudo apt-get update  
+sudo apt update && sudo apt upgrade -y
+sudo apt install make
+sudo apt install build-essential
+sudo apt install cmake
+sudo apt-get install doxygen
+```
+
+point_cloud project require [PCL library](https://pointclouds.org/). On Ubuntu:
+``` bash
+sudo apt-get update && sudo apt upgrade -y
 sudo apt-get install git build-essential linux-libc-dev
 sudo apt-get install cmake cmake-gui
 sudo apt-get install libusb-1.0-0-dev libusb-dev libudev-dev
@@ -42,9 +51,9 @@ or  [github repository](https://github.com/PointCloudLibrary/pcl)
 
 ---
 
-calibration and streo_calibration projects require [OpenCV library](https://opencv.org/), on Ubuntu:
+calibration and streo_calibration projects require [OpenCV library](https://opencv.org/). On Ubuntu:
 ``` bash
-sudo apt update
+sudo apt update && sudo apt upgrade -y
 sudo apt install libopencv-dev python3-opencv
 sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev
 sudo apt-get install libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev
