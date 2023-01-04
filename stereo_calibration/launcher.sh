@@ -2,4 +2,4 @@
 
 clear
 
-cd bin && ./calibration
+cd bin && ./stereoCalibration

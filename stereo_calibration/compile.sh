@@ -3,5 +3,3 @@
 clear
 
 cd build && make
-
-cd ../bin && ./calibration

@@ -6,5 +6,5 @@
 
 int main()
 {
-  calibrateSingleCamera("../images", ROWS, COLS);
+    calibrateStereoCamera("../images/left", "../images/right", ROWS, COLS);
 }
