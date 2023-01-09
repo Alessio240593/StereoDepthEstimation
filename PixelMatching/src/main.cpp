@@ -37,6 +37,8 @@
 #define WIDTH 10
 /// Altezza della matrice sorgente
 #define HEIGHT 3
+/// Incremento delle matrici sorgenti (src3 e src4)
+#define INC 2
 
 int main()
 {
@@ -56,17 +58,19 @@ int main()
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
     };
 
     const std::vector<uint8_t> src4{
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
         1, 1, 1, 0, 0, 0, 1, 0, 0, 0,
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     };
 
-    std::vector<uint8_t> dst_matrix((WIDTH - (KERNEL_SIZE - 1)) * ((HEIGHT + 1) - (KERNEL_SIZE - 1)), 0);
+    std::vector<uint8_t> dst_matrix((WIDTH - (KERNEL_SIZE - 1)) * ((HEIGHT + INC) - (KERNEL_SIZE - 1)), 0);
     std::vector<uint8_t> dst_vector(WIDTH - (KERNEL_SIZE - 1), 0);
     std::vector<uint8_t> dst_padding((HEIGHT + (KERNEL_SIZE - 1)) * (WIDTH + (KERNEL_SIZE - 1)), 0);
 
@@ -75,9 +79,8 @@ int main()
         1, 1, 1,
         1, 1, 1
     };*/
-
     argMaxCorrVector<uint8_t>(src1.data(), src2.data(), dst_vector.data(), HEIGHT, WIDTH);
-    argMaxCorrMat<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), WIDTH, (HEIGHT + 1), KERNEL_SIZE);
+    argMaxCorrMat<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), WIDTH, (HEIGHT + INC), KERNEL_SIZE);
 
     // Stampo la matrice src1
     const uint8_t *pSrc = src1.data();
@@ -122,7 +125,7 @@ int main()
     // Stampo la matrice src3
     pSrc = src3.data();
     std::cout << "\n→ src3:\n";
-    for (std::size_t i = 0; i < HEIGHT + 1; i++) {
+    for (std::size_t i = 0; i < HEIGHT + INC; i++) {
         for (std::size_t j = 0; j < WIDTH; j++) {
             std::cout << +*(pSrc +(i * WIDTH) + j) << " ";
         }
@@ -132,7 +135,7 @@ int main()
     // Stampo la matrice src4
     pSrc = src4.data();
     std::cout << "\n→ src4:\n";
-    for (std::size_t i = 0; i < HEIGHT + 1; i++) {
+    for (std::size_t i = 0; i < HEIGHT + INC; i++) {
         for (std::size_t j = 0; j < WIDTH; j++) {
             std::cout << +*(pSrc +(i * WIDTH) + j) << " ";
         }
@@ -142,7 +145,7 @@ int main()
     // Stampo il risultato della cross correlazione
     pSrc = dst_matrix.data();
     std::cout <<"\n\n→ Risultato argMaxCorrMat src2, src3:\n";
-    for (std::size_t i = 0; i < (HEIGHT + 1) - (KERNEL_SIZE - 1); i++) {
+    for (std::size_t i = 0; i < (HEIGHT + INC) - (KERNEL_SIZE - 1); i++) {
         for (std::size_t j = 0; j < WIDTH - (KERNEL_SIZE - 1); j++) {
             std::cout << +*(pSrc + j + (i * (WIDTH - (KERNEL_SIZE - 1)))) << " ";
         }

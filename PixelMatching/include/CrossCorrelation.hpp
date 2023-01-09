@@ -293,9 +293,9 @@ void copySrcToSrcKernelRows(const T             *src,
                             const std::size_t   kernel_size, 
                             const std::size_t   matrix_width)
 {
-    for (std::size_t i = current_row; i < kernel_size + current_row; i++) {
+    for (std::size_t i = 0; i < kernel_size; i++) {
         for (std::size_t j = 0; j < matrix_width; j++) {
-            *(src_kernel_rows + (i * matrix_width) + j) = *(src + (i * matrix_width) + j);
+            *(src_kernel_rows + (i * matrix_width) + j) = *(src + ((i + current_row) * matrix_width) + j);
         }
     }
 
@@ -383,7 +383,7 @@ void argMaxCorrVector(const T           *src1,
         *(dst + i) = argMaxCorr<T>(src1, k, height, width);
     }
 
-    delete k;
+    delete[] k;
 }
 
 /**
@@ -412,43 +412,13 @@ void argMaxCorrMat(const T              *src1,
                    const std::size_t    height, 
                    const std::size_t    kernel_size)
 {
-    T *src1_k_rows = new(std::nothrow) T[width * kernel_size];
-
-    if (!src1_k_rows) {
-        std::cerr << "Memory allocation failed" <<
-        "\n→ Line: " << __LINE__ << 
-        "\n→ Function: " << __func__  << 
-        "\n→ File: " << __FILE__ << std::endl;;
-        exit(EXIT_FAILURE);
-    }
-
-    T *src2_k_rows = new(std::nothrow) T[width * kernel_size];
-
-    if (!src2_k_rows) {
-        std::cerr << "Memory allocation failed" <<
-        "\n→ Line: " << __LINE__ << 
-        "\n→ Function: " << __func__  << 
-        "\n→ File: " << __FILE__ << std::endl;;
-        exit(EXIT_FAILURE);
-    }
-
     const std::size_t dst_vect_size = width - (kernel_size - 1);
-    T *dst_vect = new(std::nothrow) T[dst_vect_size];
-
-    if (!dst_vect) {
-        std::cerr << "Memory allocation failed" <<
-        "\n→ Line: " << __LINE__ << 
-        "\n→ Function: " << __func__  << 
-        "\n→ File: " << __FILE__ << std::endl;;
-        exit(EXIT_FAILURE);
-    }
 
     for (std::size_t i = 0; i < (height - kernel_size) + 1; i++) {
-        copySrcToSrcKernelRows<T>(src1, src1_k_rows, i, kernel_size, width);
-        copySrcToSrcKernelRows<T>(src2, src2_k_rows, i, kernel_size, width);
-        argMaxCorrVector<T>(src1_k_rows, src2_k_rows, dst_vect, kernel_size, width);
-        concatDst<T>(dst_vect, dst, dst_vect_size, i);
+        argMaxCorrVector<T>(
+            src1 + (i * width), 
+            src2 + (i * width), 
+            dst + (i * dst_vect_size), 
+            kernel_size, width);
     }
-
-    delete src1_k_rows; delete src2_k_rows; delete dst_vect;
 }
