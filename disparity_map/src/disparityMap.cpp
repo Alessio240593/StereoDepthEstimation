@@ -4,6 +4,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <stdio.h>
 #include <iostream>
+#include <ctime>
 #include "opencv2/imgcodecs.hpp"
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d_c.h>
@@ -94,10 +95,10 @@ static void on_trackbar11( int, void* )
   stereo->setMinDisparity(minDisparity);
 }
 
-
+using namespace std;
 int main()
 {
-  // Creating a named window to be linked to the trackbars
+ /* // Creating a named window to be linked to the trackbars
   cv::namedWindow("disparity",cv::WINDOW_NORMAL);
   cv::resizeWindow("disparity",900,900);
 
@@ -113,57 +114,35 @@ int main()
   cv::createTrackbar("speckleWindowSize", "disparity", &speckleWindowSize, 25, on_trackbar9);
   cv::createTrackbar("disp12MaxDiff", "disparity", &disp12MaxDiff, 25, on_trackbar10);
   cv::createTrackbar("minDisparity", "disparity", &minDisparity, 25, on_trackbar11);
+  */
 
-  cv::Mat disp, disparity;
+  Mat map(700, 600, CV_8UC1);
 
-  while (true)
-  {
-    // Capturing and storing left and right camera images
-    imgL = imread("../images/lion_left.jpeg", 1);
-    imgR = imread("../images/lion_right.jpeg", 1);
+      std::srand(time(NULL));
 
-    // Converting images to grayscale
-    cv::cvtColor(imgL, imgL_gray, cv::COLOR_BGR2GRAY);
-    cv::cvtColor(imgR, imgR_gray, cv::COLOR_BGR2GRAY);
+  for (size_t i = 0; i < 700; i++) {
+    for (size_t j = 0; j < 600; j++) {
+      map.at<uchar>(i, j) = rand() % 255;
+    }    
+  }
 
-    // Initialize matrix for rectified stereo images
-    cv::Mat Left_nice, Right_nice;
+  imshow("image", map);
 
-    // Calculating disparith using the StereoBM algorithm
-    stereo->compute(imgL_gray,imgR_gray,disp);
+  double min;
+  double max;
+  cv::minMaxIdx(map, &min, &max);
+  cv::Mat adjMap;
+  // expand your range to 0..255. Similar to histEq();
+  float scale = 255 / (max-min);
+  map.convertTo(adjMap,CV_8UC1, scale, -255* min / (max - min));
 
-    // NOTE: Code returns a 16bit signed single channel image,
-		// CV_16S containing a disparity map scaled by 16. Hence it 
-    // is essential to convert it to CV_32F and scale it down 16 times.
+  // this is great. It converts your grayscale image into a tone-mapped one, 
+  // much more pleasing for the eye
+  // function is found in contrib module, so include contrib.hpp 
+  // and link accordingly
+  cv::Mat falseColorsMap;
+  applyColorMap(adjMap, falseColorsMap, cv::	COLORMAP_JET);
 
-    // Converting disparity values to CV_32F from CV_16S
-    disp.convertTo(disparity,CV_32F, 1.0);
-
-    // Scaling down the disparity values and normalizing them 
-    disparity = (disparity/16.0f - (float)minDisparity)/((float)numDisparities);
-
-    disp.convertTo(disparity,CV_8UC1, 1.0);
-
-    applyColorMap(disparity, disparity, COLORMAP_RAINBOW);
-
-    // Displaying the disparity map
-    cv::imshow("disparity",disparity);
-
-    // Close window using esc key
-    if (cv::waitKey(1) == 27) break;
-
-    /*Mat new_mtxL, distL, new_mtxR, distR, Rot, Trns;
-
-    FileStorage fs("../../calibration/calibration_setup/parameters.yml", FileStorage::READ);
-    if (fs.isOpened()) {
-        fs["DISTCOEFFS_LEFT"] >> distL;
-        std::cout << distL;
-        fs.release();
-        fs["ROTATION VECTOR_LEFT"] >> new_mtxL;
-        std::cout << new_mtxL;
-    }*/
-
-    cv::Mat rect_l, rect_r, proj_mat_l, proj_mat_r, Q;  
-}
-return 0;
+  cv::imshow("Out", falseColorsMap);
+  waitKey(0);
 }
