@@ -227,6 +227,40 @@ std::size_t argMaxCorr(const T              *src,
     return max_idx;
 }
 
+template <typename T>
+std::size_t argMaxCorrV2(const T              *src1, 
+                        const T              *src2, 
+                        const std::size_t    offset,
+                        const std::size_t    kernel_size, 
+                        const std::size_t    matrix_width)
+{
+    //inputParsing(src, kernel, kernel_size, matrix_width);
+
+    T max{0};
+    T tmp;
+    std::size_t max_idx{0};
+    const std::size_t pos = kernel_size / 2;
+
+    for (std::size_t i = pos; i < matrix_width - pos; i++) {
+        tmp = 0;
+        for (std::size_t j = 0; j < kernel_size; j++) {
+            for (std::size_t k = 0; k < kernel_size; k++) {
+                tmp += *(src1 + (j * matrix_width) + i - 1 + k) * *(src2 + (j * matrix_width) + k + offset);
+                //std::cout << "tmp→ " << tmp << "\n";
+                //std::cout << "(" << *(src + (j * width) + i - 1 + k) << "," << *(kernel + (j * kernel_size) + k) << ")---";
+            }
+        }
+        //std::cout << "\n\n";
+        if (tmp >= max) {
+            max = tmp;
+            //std::cout << "max: " << max << " max_idx: " << max_idx << "\n";
+            max_idx = i - 1;
+        } 
+    }
+
+    return max_idx;
+}
+
 
 /**
  * @brief Copia nella matrice \p kernel una porzione della matrice \p src della stessa grandezza di \p kernel.
@@ -368,7 +402,7 @@ void argMaxCorrVector(const T           *src1,
         exit(EXIT_FAILURE); 
     }
 
-    T *k = new(std::nothrow) T[height * height];
+    /*T *k = new(std::nothrow) T[height * height];
 
     if (!k) {
         std::cerr << "Memory allocation failed" <<
@@ -376,14 +410,17 @@ void argMaxCorrVector(const T           *src1,
         "\n→ Function: " << __func__  << 
         "\n→ File: " << __FILE__ << std::endl;;
         exit(EXIT_FAILURE); 
-    }
+    }*/
 
     for (std::size_t i = 0; i < width - (height - 1); i++) {
-        copySrcToKernel<T>(src2, k, i, height, width);
-        *(dst + i) = argMaxCorr<T>(src1, k, height, width);
+        //V1
+        //copySrcToKernel<T>(src2, k, i, height, width);
+        //*(dst + i) = argMaxCorr<T>(src1, k, height, width);
+        //V2 senza copia
+        *(dst + i) = argMaxCorrV2<T>(src1, src2, i, height, width);
     }
 
-    delete[] k;
+    //delete[] k;
 }
 
 /**
