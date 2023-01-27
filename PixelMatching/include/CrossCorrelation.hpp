@@ -228,7 +228,7 @@ std::size_t argMaxCorr(const T              *src,
 }
 
 template <typename T>
-std::size_t argMaxCorrV2(const T              *src1, 
+std::size_t argMaxCorrV2(const T             *src1, 
                         const T              *src2, 
                         const std::size_t    offset,
                         const std::size_t    kernel_size, 
