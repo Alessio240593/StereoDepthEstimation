@@ -115,6 +115,8 @@ int main(int argc, char **argv) {
 
     matrix_analysis.show_analysis();
 
+    matrix_analysis.dump_analysis();
+
     // Close the camera
     zed.close();
     return EXIT_SUCCESS;

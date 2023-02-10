@@ -73,6 +73,8 @@
         "__tree": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "__mutex_base": "cpp"
+        "__mutex_base": "cpp",
+        "shared_mutex": "cpp",
+        "cfenv": "cpp"
     }
 }
