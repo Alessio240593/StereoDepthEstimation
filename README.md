@@ -3,17 +3,18 @@
 ![alt](https://img.shields.io/badge/license-GPLv3.0-success)
 ![alt](https://img.shields.io/badge/version-v1.0-blue)
 
-<img src="Logo_tesi.png" width="400" height="250"/>
+<img src="Logo_tesi.png" width="330" height="180"/>
 
 ---
 
 ## Description
 ComputerVision contiene l'implementazione in c++ del calcolo della profondità partendo da una coppia di immagini stereo, il progetto è composto da una versione sequenziale e da una versione parallela. ComputerVision è diviso nelle seguenti parti:
 - ***PixelMatching***: contiene l'implementazione dell'algoritmo per il calcolo della matrice delle profondità.
-- ***stereo_calibration***: contiene l'implementazione della calibrazione in un sistema di camera stereo.
-- ***calibration***: contiene l'implementazione della calibrazione in un sistema a camera semplice non stereo.
+- ***stereo_calibration***: contiene l'implementazione della calibrazione di un sistema stereo.
+- ***calibration***: contiene l'implementazione della calibrazione di un sistema a singola camera.
 - ***point_cloud***: contiene l'implementazione per passare dalla matrice delle profondità al modello 3D rappresentato tramite una nuvola di punti. 
 - ***disparity_map***: rappresenta l'immagine tramite una colormap per evidenzare le zone di maggior profondità.
+- ***zed_benchmark***: progetto utilizzato come ground truth in fase di benchmark 
 
 ## Stages
 1. Come prima fase è prevista una calibrazione del sistema implementata in **stereo_calibration**.
