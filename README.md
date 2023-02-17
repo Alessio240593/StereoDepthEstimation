@@ -3,7 +3,7 @@
 ![alt](https://img.shields.io/badge/license-GPLv3.0-success)
 ![alt](https://img.shields.io/badge/version-v1.0-blue)
 
-<img src="Logo_tesi.png" width="330" height="180"/>
+<img src="Logo_tesi.png" width="320" height="190"/>
 
 ---
 
@@ -23,6 +23,8 @@ ComputerVision contiene l'implementazione in c++ del calcolo della profondità p
 
 
 ## Dipendencies
+
+##### CMAKE MAKE DOXYGEN GCC
 The project require [CMake](https://cmake.org/), [Make](https://www.gnu.org/software/make/), [doxygen](https://www.doxygen.nl/), [gcc](https://gcc.gnu.org/). On Ubuntu:
 ``` bash
 sudo apt update && sudo apt upgrade -y
@@ -32,6 +34,7 @@ sudo apt install cmake
 sudo apt-get install doxygen
 ```
 
+##### PCL
 point_cloud project require [PCL library](https://pointclouds.org/). On Ubuntu:
 ``` bash
 sudo apt-get update && sudo apt upgrade -y
@@ -52,6 +55,7 @@ or  [github repository](https://github.com/PointCloudLibrary/pcl)
 
 ---
 
+##### OPENCV
 calibration and streo_calibration projects require [OpenCV library](https://opencv.org/). On Ubuntu:
 ``` bash
 sudo apt update && sudo apt upgrade -y
@@ -66,6 +70,11 @@ sudo apt-get install libtiff-dev
 sudo apt-get install libwebp-dev
 ```
 or [github repository](https://github.com/opencv/opencv)
+
+---
+
+##### ZED SDK
+zed_benchmark require [zed sdk](https://www.stereolabs.com/developers/release/), for the installation of sdk on linux systems → [zed sdk installation](https://www.stereolabs.com/docs/installation/linux/)
 
 ## Integration
 
