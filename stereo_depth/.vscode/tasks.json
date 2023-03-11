@@ -1,0 +1,82 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+      {
+          "label": "Compile Swift",
+          "command": "/usr/share/swift/usr/bin/swiftc",
+          "args": [
+              "-g",
+              "-o",
+              "${fileBasenameNoExtension}.bin",
+              "${file}"
+          ],
+          "type": "shell",
+          "group": {
+              "kind": "build",
+              "isDefault": true
+          },
+          "options": {
+              "cwd": "/home/alessio/swift/"
+          }
+      },
+    {
+      "type": "shell",
+      "label": "g++ build active file",
+      "command": "/usr/bin/g++",
+      "args": [
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}/${fileBasenameNoExtension}"
+      ],
+      "options": {
+        "cwd": "/usr/bin"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "type": "cppbuild",
+      "label": "C/C++: gcc-5 build active file",
+      "command": "/usr/bin/gcc-5",
+      "args": [
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}/${fileBasenameNoExtension}"
+      ],
+      "options": {
+        "cwd": "/usr/bin"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": "build",
+      "detail": "compiler: /usr/bin/gcc-5"
+    },
+    {
+      "type": "cppbuild",
+      "label": "C/C++: gcc build active file",
+      "command": "/usr/bin/gcc",
+      "args": [
+        "-g",
+        "${file}",
+        "-o",
+        "${fileDirname}/${fileBasenameNoExtension}"
+      ],
+      "options": {
+        "cwd": "/usr/bin"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": "build",
+      "detail": "compiler: /usr/bin/gcc"
+    }
+  ]
+}

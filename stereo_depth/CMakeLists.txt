@@ -175,7 +175,7 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode=arch=compute_${CA},code=sm_${
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode=arch=compute_${CA},code=compute_${CA}")
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O1")
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O2")
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3")
+#set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -w")
 
 # ------------------------------------------------------------------------------
@@ -185,10 +185,10 @@ set(LIBRARY_NAME ${PROJECT_NAME})
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
-add_library(${LIBRARY_NAME}
-    $<TARGET_OBJECTS:${LIBRARY_NAME}-core>
-)
-target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
+#add_library(${LIBRARY_NAME}
+#    $<TARGET_OBJECTS:${LIBRARY_NAME}-core>
+#)
+#target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
 
 # ------------------------------------------------------------------------------
 # Add the tests.
@@ -197,7 +197,7 @@ if (BUILD_TEST)
 endif()
 
 # ------------------------------------------------------------------------------
-# Add the examples.
-if (BUILD_EXAMPLE)
-    add_subdirectory(example)
-endif()
+#Add the examples.
+#if (BUILD_EXAMPLE)
+#    add_subdirectory(example)
+#endif()

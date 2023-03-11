@@ -264,7 +264,7 @@
 # Jetson TX2                    62
 # Jetson TX1                    53
 # Tegra X1                      53
-set(COMPUTE_CAPABILITY          72 CACHE STRING "CUDA Compute Capability") #< GPU compute capability
+set(COMPUTE_CAPABILITY          50 CACHE STRING "CUDA Compute Capability") #< GPU compute capability
 add_definitions(-DCOMPUTE_CAPABILITY=${COMPUTE_CAPABILITY})
 message(STATUS "COMPUTE_CAPABILITY: ${COMPUTE_CAPABILITY}")
 set(CMAKE_CUDA_ARCHITECTURES ${COMPUTE_CAPABILITY})
