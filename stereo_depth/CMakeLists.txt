@@ -182,10 +182,10 @@ set(LIBRARY_NAME ${PROJECT_NAME})
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
-add_library(${LIBRARY_NAME}
-    $<TARGET_OBJECTS:${LIBRARY_NAME}-core>
-)
-target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
+#add_library(${LIBRARY_NAME}
+#    $<TARGET_OBJECTS:${LIBRARY_NAME}-core>
+#)
+#target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
 
 # ------------------------------------------------------------------------------
 # Add the tests.
@@ -194,7 +194,7 @@ if (BUILD_TEST)
 endif()
 
 # ------------------------------------------------------------------------------
-# Add the examples.
-if (BUILD_EXAMPLE)
-    add_subdirectory(example)
-endif()
+#Add the examples.
+#if (BUILD_EXAMPLE)
+#    add_subdirectory(example)
+#endif()

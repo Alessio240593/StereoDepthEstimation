@@ -1,5 +1,5 @@
 set(EXAMPLES
-    main
+    mainExample
 )
 
 foreach(EX ${EXAMPLES})

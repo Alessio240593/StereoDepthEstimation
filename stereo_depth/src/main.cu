@@ -26,7 +26,7 @@
  * ...
  */
 
-#include <CrossCorrelation.hpp>
+#include "cuda_cross_correlation.cuh"
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -42,19 +42,19 @@
 
 int main()
 {
-    const std::vector<uint8_t> src1{
+    std::vector<uint8_t> src1{
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 
-    const std::vector<uint8_t> src2{
+    std::vector<uint8_t> src2{
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
         1, 1, 1, 0, 0, 0, 1, 0, 0, 0,
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0
     };
 
-    const std::vector<uint8_t> src3{
+    std::vector<uint8_t> src3{
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -62,7 +62,7 @@ int main()
         0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
     };
 
-    const std::vector<uint8_t> src4{
+    std::vector<uint8_t> src4{
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
         1, 1, 1, 0, 0, 0, 1, 0, 0, 0,
         1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
@@ -71,59 +71,11 @@ int main()
     };
 
     std::vector<uint8_t> dst_matrix((WIDTH - (KERNEL_SIZE - 1)) * ((HEIGHT + INC) - (KERNEL_SIZE - 1)), 0);
-    std::vector<uint8_t> dst_vector(WIDTH - (KERNEL_SIZE - 1), 0);
-    std::vector<uint8_t> dst_padding((HEIGHT + (KERNEL_SIZE - 1)) * (WIDTH + (KERNEL_SIZE - 1)), 0);
 
-    /*std::vector<uint8_t> k{
-        1, 1, 1,
-        1, 1, 1,
-        1, 1, 1
-    };*/
-    argMaxCorrVector<uint8_t>(src1.data(), src2.data(), dst_vector.data(), HEIGHT, WIDTH);
-    argMaxCorrMat<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), WIDTH, (HEIGHT + INC), KERNEL_SIZE);
-
-    // Stampo la matrice src1
-    const uint8_t *pSrc = src1.data();
-    std::cout << "\n→ src1:\n";
-    for (std::size_t i = 0; i < HEIGHT; i++) {
-        for (std::size_t j = 0; j < WIDTH; j++) {
-            std::cout << +*(pSrc +(i * WIDTH) + j) << " ";
-        }
-        std::cout <<"\n";
-    }
-
-    // Stampo la matrice src2
-    pSrc = src2.data();
-    std::cout << "\n→ src2:\n";
-    for (std::size_t i = 0; i < HEIGHT; i++) {
-        for (std::size_t j = 0; j < WIDTH; j++) {
-            std::cout << +*(pSrc +(i * WIDTH) + j) << " ";
-        }
-        std::cout <<"\n";
-    }
-
-    // Stampo risultato argMaxCorrVector
-    pSrc = dst_vector.data();
-    std::cout << "\n→ Risultato argMaxCorrVector src1, src2: ";
-
-    for (std::size_t j = 0; j < (WIDTH - (KERNEL_SIZE - 1)); j++) {
-        std::cout << +*(pSrc + j) << " ";
-    }
-
-    // Stampo risultato del pagging
-    std::cout <<"\n\n→ Risultato padding src2:\n";
-    padding<uint8_t>(src2.data(), dst_padding.data(), HEIGHT, WIDTH, KERNEL_SIZE, KERNEL_SIZE);
-    pSrc = dst_padding.data();
-
-    for (std::size_t i = 0; i < (HEIGHT + (KERNEL_SIZE - 1)); i++) {
-        for (std::size_t j = 0; j < (WIDTH + (KERNEL_SIZE - 1)); j++) {
-            std::cout << +*(pSrc +(i * (WIDTH + (KERNEL_SIZE - 1)) + j)) << " ";
-        }
-        std::cout <<"\n";
-    }
+    crossCorrelation<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), KERNEL_SIZE, (HEIGHT + INC), WIDTH);
 
     // Stampo la matrice src3
-    pSrc = src3.data();
+    uint8_t  *pSrc = src3.data();
     std::cout << "\n→ src3:\n";
     for (std::size_t i = 0; i < HEIGHT + INC; i++) {
         for (std::size_t j = 0; j < WIDTH; j++) {
