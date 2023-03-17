@@ -1,13 +1,12 @@
+
+
 cmake_minimum_required(VERSION 3.12.2)
 message(STATUS "CMake version: ${CMAKE_VERSION}")
 
-# ------------------------------------------------------------------------------
-# Setup project.
+project(StereoDepth VERSION 0.1)
 
-project(stereodepth LANGUAGES CUDA CXX)
-set(CMAKE_CXX_STANDARD 14)
 set(DEPENDENCIES "")
-set(INCLUDES "")
+# set(INCLUDES "")
 
 set(DEBUG OFF)
 if(NOT CMAKE_BUILD_TYPE)
@@ -38,23 +37,98 @@ endif(DEBUG)
 set(BUILD_TEST ON CACHE BOOL "Enable tests generation")
 set(BUILD_EXAMPLE ON CACHE BOOL "Enable examples generation")
 
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MACOSX_RPATH 1)
+set(BUILD_SHARED_LIBS ON)
+if(WIN32)
+    set(CMAKE_CXX_STANDARD 20)
+else()
+    set(CMAKE_CXX_STANDARD 14)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# ------------------------------------------------------------------------------
-# Setup dependencies.
-include(cmake/GPUConfig.cmake)
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+    set(LIBRARY_KIND STATIC)
+else()
+    set(LIBRARY_KIND SHARED)
+endif()
 
-# Test.
+if(NOT WIN32)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        # add_compile_options(-O1)
+        # add_compile_options(-O2)
+        add_compile_options(-O3)
+        add_compile_options(-g3)
+        add_compile_options(-ggdb)
+        add_compile_options(-w)
+        # add_compile_options(-fomit-frame-pointer)
+        # add_compile_options(-fno-builtin)
+        # add_compile_options(-fno-stack-protector)
+        # add_compile_options(-Wall)
+        # add_compile_options(-Werror)
+        # add_compile_options(-march=i686)
+        # add_compile_options(-m32)
+        # add_compile_options(-Wpedantic)
+        # add_compile_options(-pedantic-errors)
+        # add_compile_options(-Wextra)
+        # add_compile_options(-Wconversion)
+        # add_compile_options(-Wcast-align)
+        # add_compile_options(-Wcast-qual)
+        # add_compile_options(-Wdisabled-optimization)
+        # add_compile_options(-Wfloat-equal)
+        # add_compile_options(-Wfloat-conversion)
+        # add_compile_options(-Wformat=2)
+        # add_compile_options(-Wformat-nonliteral)
+        # add_compile_options(-Wformat-security)
+        # add_compile_options(-Wformat-y2k)
+        # add_compile_options(-Wimport)
+        # add_compile_options(-Winit-self)
+        # add_compile_options(-Winline)
+        # add_compile_options(-Winvalid-pch)
+        # add_compile_options(-Wno-long-long)
+        # add_compile_options(-Wmissing-field-initializers)
+        # add_compile_options(-Wmissing-format-attribute)
+        # add_compile_options(-Wmissing-include-dirs)
+        # add_compile_options(-Wpacked)
+        # add_compile_options(-Wpointer-arith)
+        # add_compile_options(-Wredundant-decls)
+        # add_compile_options(-Wshadow)
+        # add_compile_options(-Wstack-protector)
+        # add_compile_options(-Wstrict-aliasing=2)
+        # add_compile_options(-Wswitch)
+        # add_compile_options(-Wswitch-default)
+        # add_compile_options(-Wswitch-enum)
+        # add_compile_options(-Wunreachable-code)
+        # add_compile_options(-Wunused)
+        # add_compile_options(-Wunused-function)
+        # add_compile_options(-Wunused-label)
+        # add_compile_options(-Wunused-parameter)
+        # add_compile_options(-Wunused-value)
+        # add_compile_options(-Wunused-variable)
+        # add_compile_options(-Wvariadic-macros)
+        # add_compile_options(-Wwrite-strings)
+        # add_compile_options(-Wsign-compare)
+        # add_compile_options(-Wsign-conversion)
+        # add_compile_options(-Wuninitialized)
+        # add_compile_options(-fmessage-length=0)
+    endif()
+endif()
+
 enable_testing()
+add_custom_target(tests)
 include(CTest)
-
-# Check if CUDA is available.
-include(CheckLanguage)
-check_language(CUDA)
 
 set(DEPENDENCIES ${DEPENDENCIES} -lstdc++fs)
 
 # ------------------------------------------------------------------------------
 # Setup CUDA.
+
+include(cmake/GPUConfig.cmake)
+
+include(CheckLanguage)
+check_language(CUDA)
 
 # Check if a compiler exists.
 if(CMAKE_CUDA_COMPILER)
@@ -81,6 +155,12 @@ message(STATUS
         "CMake setup project succeeds with NVIDIA "
         "v${CMAKE_CUDA_COMPILER_VERSION}")
 
+if(NOT WIN32)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CA ${CMAKE_CUDA_ARCHITECTURES}) # Compute Capability
+        set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode=arch=compute_${CA},code=sm_${CA}")
+    endif()
+endif()
 # ------------------------------------------------------------------------------
 # Setup OpenMP.
 set(OPENMP ON CACHE BOOL "Use OpenMP library")
@@ -110,91 +190,26 @@ message(STATUS "OpenCV_USE_CUBLAS: ${OpenCV_USE_CUBLAS}")
 message(STATUS "OpenCV_USE_CUFFT: ${OpenCV_USE_CUFFT}")
 message(STATUS "OpenCV_USE_NVCUVID: ${OpenCV_USE_NVCUVID}")
 
-# ------------------------------------------------------------------------------
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # add_compile_options(-O1)
-    # add_compile_options(-O2)
-    add_compile_options(-O3)
-    add_compile_options(-g3)
-    add_compile_options(-ggdb)
-    add_compile_options(-w)
-    # add_compile_options(-fomit-frame-pointer)
-    # add_compile_options(-fno-builtin)
-    # add_compile_options(-fno-stack-protector)
-    # add_compile_options(-Wall)
-    # add_compile_options(-Werror)
-    # add_compile_options(-march=i686)
-    # add_compile_options(-m32)
-    # add_compile_options(-Wpedantic)
-    # add_compile_options(-pedantic-errors)
-    # add_compile_options(-Wextra)
-    # add_compile_options(-Wconversion)
-    # add_compile_options(-Wcast-align)
-    # add_compile_options(-Wcast-qual)
-    # add_compile_options(-Wdisabled-optimization)
-    # add_compile_options(-Wfloat-equal)
-    # add_compile_options(-Wfloat-conversion)
-    # add_compile_options(-Wformat=2)
-    # add_compile_options(-Wformat-nonliteral)
-    # add_compile_options(-Wformat-security)
-    # add_compile_options(-Wformat-y2k)
-    # add_compile_options(-Wimport)
-    # add_compile_options(-Winit-self)
-    # add_compile_options(-Winline)
-    # add_compile_options(-Winvalid-pch)
-    # add_compile_options(-Wno-long-long)
-    # add_compile_options(-Wmissing-field-initializers)
-    # add_compile_options(-Wmissing-format-attribute)
-    # add_compile_options(-Wmissing-include-dirs)
-    # add_compile_options(-Wpacked)
-    # add_compile_options(-Wpointer-arith)
-    # add_compile_options(-Wredundant-decls)
-    # add_compile_options(-Wshadow)
-    # add_compile_options(-Wstack-protector)
-    # add_compile_options(-Wstrict-aliasing=2)
-    # add_compile_options(-Wswitch)
-    # add_compile_options(-Wswitch-default)
-    # add_compile_options(-Wswitch-enum)
-    # add_compile_options(-Wunreachable-code)
-    # add_compile_options(-Wunused)
-    # add_compile_options(-Wunused-function)
-    # add_compile_options(-Wunused-label)
-    # add_compile_options(-Wunused-parameter)
-    # add_compile_options(-Wunused-value)
-    # add_compile_options(-Wunused-variable)
-    # add_compile_options(-Wvariadic-macros)
-    # add_compile_options(-Wwrite-strings)
-    # add_compile_options(-Wsign-compare)
-    # add_compile_options(-Wsign-conversion)
-    # add_compile_options(-Wuninitialized)
-    # add_compile_options(-fmessage-length=0)
-endif()
 
 # ------------------------------------------------------------------------------
-# Set the CUDA compiler options.
-set(CA ${CMAKE_CUDA_ARCHITECTURES}) # Compute Capability
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -gencode=arch=compute_${CA},code=sm_${CA}")
-
-# ------------------------------------------------------------------------------
-# Add the library.
-set(LIBRARY_NAME ${PROJECT_NAME})
+# Configure library.
 
 include_directories(SYSTEM ${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
-#add_library(${LIBRARY_NAME}
-#    $<TARGET_OBJECTS:${LIBRARY_NAME}-core>
-#)
-#target_link_libraries(${LIBRARY_NAME} ${DEPENDENCIES})
 
-# ------------------------------------------------------------------------------
-# Add the tests.
 if (BUILD_TEST)
     add_subdirectory(test)
 endif()
 
-# ------------------------------------------------------------------------------
-#Add the examples.
-#if (BUILD_EXAMPLE)
-#    add_subdirectory(example)
-#endif()
+if (BUILD_EXAMPLE)
+   add_subdirectory(example)
+endif()
+
+add_library(stereodepth ${LIBRARY_KIND}
+    $<TARGET_OBJECTS:stereodepth-core>
+)
+
+if (EXISTS "/etc/nv_tegra_release")
+    target_link_libraries(stereodepth -lstdc++fs)
+endif()
