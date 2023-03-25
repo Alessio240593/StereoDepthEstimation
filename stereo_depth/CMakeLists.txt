@@ -63,6 +63,7 @@ if(NOT WIN32)
         add_compile_options(-g3)
         add_compile_options(-ggdb)
         add_compile_options(-w)
+        add_compile_options(-std=c++17)
         # add_compile_options(-fomit-frame-pointer)
         # add_compile_options(-fno-builtin)
         # add_compile_options(-fno-stack-protector)
@@ -205,6 +206,10 @@ endif()
 if (BUILD_EXAMPLE)
    add_subdirectory(example)
 endif()
+
+#if (BUILD_BENCHMARK)
+    add_subdirectory(benchmark)
+#endif()
 
 add_library(stereodepth ${LIBRARY_KIND}
     $<TARGET_OBJECTS:stereodepth-core>

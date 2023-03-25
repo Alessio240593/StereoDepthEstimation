@@ -18,13 +18,17 @@
  ****************************************************************************/
 
 
+
 /**
- * @file main.cpp
- * @author Alessio Zattoni
+ * @file    man_gpu.cu
+ * @author  Alessio Zattoni
  * @date 
+ * @brief   Questo file contiene un esempio di calcolo di cross-correlazione in CUDA
  *
  * ...
  */
+
+
 
 #include "cuda_cross_correlation.cuh"
 #include <iostream>
@@ -39,6 +43,7 @@
 #define HEIGHT 3
 /// Incremento delle matrici sorgenti (src3 e src4)
 #define INC 2
+
 
 int main()
 {

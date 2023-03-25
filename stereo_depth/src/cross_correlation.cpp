@@ -18,13 +18,15 @@
  ****************************************************************************/
 
 
+
 /**
- * @file cross_correlation.cpp
- * @author Alessio Zattoni
+ * @file    cross_correlation.cpp
+ * @author  Alessio Zattoni
  * @date 
  *
  * ...
  */
+
 
 
 #include <stereodepth/cross_correlation.hpp>

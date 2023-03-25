@@ -18,13 +18,17 @@
  ****************************************************************************/
 
 
+
 /**
- * @file main.cpp
- * @author Alessio Zattoni
+ * @file    main_cpu.cpp
+ * @author  Alessio Zattoni
  * @date 
+ * @brief   Questo file contiene un esempio di calcolo di cross-correlazione
  *
  * ...
  */
+
+
 
 #include <stereodepth/cross_correlation.hpp>
 #include <iostream>

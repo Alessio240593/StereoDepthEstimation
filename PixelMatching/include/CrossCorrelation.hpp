@@ -211,7 +211,7 @@ std::size_t argMaxCorr(const T              *src,
         tmp = 0;
         for (std::size_t j = 0; j < kernel_size; j++) {
             for (std::size_t k = 0; k < kernel_size; k++) {
-                tmp += *(src + (j * matrix_width) + i - 1 + k) * *(kernel + (j * kernel_size) + k);
+                tmp += *(src + (j * matrix_width) + i - pos + k) * *(kernel + (j * kernel_size) + k);
                 //std::cout << "tmp→ " << tmp << "\n";
                 //std::cout << "(" << *(src + (j * width) + i - 1 + k) << "," << *(kernel + (j * kernel_size) + k) << ")---";
             }
@@ -245,7 +245,7 @@ std::size_t argMaxCorrV2(const T             *src1,
         tmp = 0;
         for (std::size_t j = 0; j < kernel_size; j++) {
             for (std::size_t k = 0; k < kernel_size; k++) {
-                tmp += *(src1 + (j * matrix_width) + i - 1 + k) * *(src2 + (j * matrix_width) + k + offset);
+                tmp += *(src1 + (j * matrix_width) + i - pos + k) * *(src2 + (j * matrix_width) + k + offset);
                 //std::cout << "tmp→ " << tmp << "\n";
                 //std::cout << "(" << *(src + (j * width) + i - 1 + k) << "," << *(kernel + (j * kernel_size) + k) << ")---";
             }

@@ -109,8 +109,6 @@ void padding(const T            *src,
 
     for (std::size_t i = 0; i < dst_rows; i++) {
         for (std::size_t j = 0; j < dst_cols; j++) {
-            //*( dst + (i * (src_cols + padding_size)) + j)  = *(src + ((i - row_pos) * (src_cols)) +  (j - col_pos));
-            //std::cout << int(*( tmp + i * cols + j)) << " ";
             if (i < padding_rows || i > src_rows ||
                 j < padding_cols || j > src_cols) {
                 *(dst + (i * dst_cols) + j) = T{0};
@@ -119,9 +117,7 @@ void padding(const T            *src,
                 *(dst + (i * dst_cols) + j) = *(src + (src_cols * (i - padding_cols)) + (j - padding_rows));
             }
         }
-        //std::cout << std::endl;
     }
-    //std::cout << std::endl;
 }
 
 
@@ -178,91 +174,6 @@ void inputParsing(const T           *src,
 
 
 /**
- * @brief Calcola la cross-correlazione tra la matrice sorgente \p src e il kernel prelevato dalla seconda matrice sorgente \p kernel.
- * @note  → La matrice \p src e il \p kernel devono avere la stessa altezza. \n
- *        → La matrice \p src deve avere lunghezza maggiore o uguale a \p KERNEL_LIMIT. \n
- *        → Il kernel deve avere dimensione minima definita come \p KERNEL_LIMIT X KERNEL_LIMIT. \n
- *        → il kernel deve avere una dimensione dispari e deve essere una matrice quadrata. \n
- *
- * @tparam      T               Tipo della matrice sorgente e della matrice kernel
- * 
- * @param[in]   src             Matrice di input
- * @param[out]  kernel          Matrice kernel
- * @param[in]   kernel_size     Dimensione della matrice kernel
- * @param[in]   matrix_width    Lunghezza della matrice sorgente
- * 
- * @return Ritorna la posizione in cui la cross-correlazione assume il massimo valore.
- * @retval std::size_t
-*/
-template <typename T>
-std::size_t argMaxCorr(const T              *src, 
-                       const T              *kernel, 
-                       const std::size_t    kernel_size, 
-                       const std::size_t    matrix_width)
-{
-    inputParsing(src, kernel, kernel_size, matrix_width);
-
-    T max{0};
-    T tmp;
-    std::size_t max_idx{0};
-    const std::size_t pos = kernel_size / 2;
-
-    for (std::size_t i = pos; i < matrix_width - pos; i++) {
-        tmp = 0;
-        for (std::size_t j = 0; j < kernel_size; j++) {
-            for (std::size_t k = 0; k < kernel_size; k++) {
-                tmp += *(src + (j * matrix_width) + i - 1 + k) * *(kernel + (j * kernel_size) + k);
-                //std::cout << "tmp→ " << tmp << "\n";
-                //std::cout << "(" << *(src + (j * width) + i - 1 + k) << "," << *(kernel + (j * kernel_size) + k) << ")---";
-            }
-        }
-        //std::cout << "\n\n";
-        if (tmp >= max) {
-            max = tmp;
-            //std::cout << "max: " << max << " max_idx: " << max_idx << "\n";
-            max_idx = i - 1;
-        } 
-    }
-
-    return max_idx;
-}
-
-template <typename T>
-std::size_t argMaxCorrV2(const T             *src1, 
-                        const T              *src2, 
-                        const std::size_t    offset,
-                        const std::size_t    kernel_size, 
-                        const std::size_t    matrix_width)
-{
-    //inputParsing(src, kernel, kernel_size, matrix_width);
-
-    T max{0};
-    T tmp;
-    std::size_t max_idx{0};
-    const std::size_t pos = kernel_size / 2;
-
-    for (std::size_t i = pos; i < matrix_width - pos; i++) {
-        tmp = 0;
-        for (std::size_t j = 0; j < kernel_size; j++) {
-            for (std::size_t k = 0; k < kernel_size; k++) {
-                tmp += *(src1 + (j * matrix_width) + i - 1 + k) * *(src2 + (j * matrix_width) + k + offset);
-                //std::cout << "tmp→ " << tmp << "\n";
-                //std::cout << "(" << *(src + (j * width) + i - 1 + k) << "," << *(kernel + (j * kernel_size) + k) << ")---";
-            }
-        }
-        //std::cout << "\n\n";
-        if (tmp >= max) {
-            max = tmp;
-            //std::cout << "max: " << max << " max_idx: " << max_idx << "\n";
-            max_idx = i - 1;
-        } 
-    }
-
-    return max_idx;
-}
-
-
-/**
  * @brief Copia nella matrice \p kernel una porzione della matrice \p src della stessa grandezza di \p kernel.
  * @note  → La matrice \p src e la matrice \p kernel devono avere la stessa altezza. \n
  *        → Il kernel deve avere una lunghezza minore o uguale della matrice \p src, inoltre deve essere almeno \p KERNEL_LIMIT X \p KERNEL_LIMIT. \n
@@ -292,14 +203,6 @@ void copySrcToKernel(const T            *src,
             *(kernel + (i * kernel_size) + j) = *(src + (i * matrix_width) + j + pos);
         }
     }
-
-    /*for (size_t i = 0; i < 3; i++) {
-        for (size_t j = 0; j < 3; j++) {
-            std::cout << +*(kernel + (i * kernel_size) + j ) << " ";
-        }
-        std::cout <<"\n";
-    }
-    std::cout <<"\n\n";*/
 }
 
 
@@ -332,14 +235,6 @@ void copySrcToSrcKernelRows(const T             *src,
             *(src_kernel_rows + (i * matrix_width) + j) = *(src + ((i + current_row) * matrix_width) + j);
         }
     }
-
-    /*for (size_t i = current_row; i < kernel_size + current_row; i++) {
-        for (size_t j = 0; j < matrix_width; j++) {
-            std::cout << +*(src_kernel_rows + (i * matrix_width) + j ) << " ";
-        }
-        std::cout <<"\n";
-    }
-    std::cout <<"\n\n";*/
 }
 
 
@@ -366,6 +261,53 @@ void concatDst(const T              *src_vect,
     for (std::size_t i = 0; i < dst_width; i++) {
         *(dst + (current_row * dst_width) + i) = *(src_vect + i);
     }
+}
+
+
+/**
+ * @brief Calcola la cross-correlazione tra la matrice sorgente \p src e il kernel prelevato dalla seconda matrice sorgente \p kernel.
+ * @note  → La matrice \p src e il \p kernel devono avere la stessa altezza. \n
+ *        → La matrice \p src deve avere lunghezza maggiore o uguale a \p KERNEL_LIMIT. \n
+ *        → Il kernel deve avere dimensione minima definita come \p KERNEL_LIMIT X KERNEL_LIMIT. \n
+ *        → il kernel deve avere una dimensione dispari e deve essere una matrice quadrata. \n
+ *
+ * @tparam      T               Tipo della matrice sorgente e della matrice kernel
+ * 
+ * @param[in]   src1            Prima matrice di input
+ * @param[in]   src2            Seconda matrice di input
+ * @param[in]   offset          Offset nella seconda matrice
+ * @param[in]   kernel_size     Dimensione della matrice kernel
+ * @param[in]   matrix_width    Lunghezza della matrice sorgente
+ * 
+ * @return Ritorna la posizione in cui la cross-correlazione assume il massimo valore.
+ * @retval std::size_t
+*/
+template <typename T>
+std::size_t argMaxCorr(const T              *src1, 
+                       const T              *src2, 
+                       const std::size_t    offset,
+                       const std::size_t    kernel_size, 
+                       const std::size_t    matrix_width)
+{
+    T max{0};
+    T tmp;
+    std::size_t max_idx{0};
+    const std::size_t pos = kernel_size / 2;
+
+    for (std::size_t i = pos; i < matrix_width - pos; i++) {
+        tmp = 0;
+        for (std::size_t j = 0; j < kernel_size; j++) {
+            for (std::size_t k = 0; k < kernel_size; k++) {
+                tmp += *(src1 + (j * matrix_width) + i - pos + k) * *(src2 + (j * matrix_width) + k + offset);
+            }
+        }
+        if (tmp >= max) {
+            max = tmp;
+            max_idx = i - 1;
+        } 
+    }
+
+    return max_idx;
 }
 
 
@@ -402,26 +344,11 @@ void argMaxCorrVector(const T           *src1,
         exit(EXIT_FAILURE); 
     }
 
-    /*T *k = new(std::nothrow) T[height * height];
-
-    if (!k) {
-        std::cerr << "Memory allocation failed" <<
-        "\n→ Line: " << __LINE__ << 
-        "\n→ Function: " << __func__  << 
-        "\n→ File: " << __FILE__ << std::endl;;
-        exit(EXIT_FAILURE); 
-    }*/
-
     for (std::size_t i = 0; i < width - (height - 1); i++) {
-        //V1
-        //copySrcToKernel<T>(src2, k, i, height, width);
-        //*(dst + i) = argMaxCorr<T>(src1, k, height, width);
-        //V2 senza copia
-        *(dst + i) = argMaxCorrV2<T>(src1, src2, i, height, width);
+        *(dst + i) = argMaxCorr<T>(src1, src2, i, height, width);
     }
-
-    //delete[] k;
 }
+
 
 /**
  * @brief Calcola la cross-correlazione tra \p src1 e \p src2 con un kernel di dimensione \p height X \p height.
@@ -458,4 +385,171 @@ void argMaxCorrMat(const T              *src1,
             dst + (i * dst_vect_size), 
             kernel_size, width);
     }
+}
+
+
+/**
+ * @brief Calcola la cross-correlazione tra la matrice sorgente \p src e il kernel prelevato dalla seconda matrice sorgente \p kernel.
+ * @note  → La matrice \p src e il \p kernel devono avere la stessa altezza. \n
+ *        → La matrice \p src deve avere lunghezza maggiore o uguale a \p KERNEL_LIMIT. \n
+ *        → Il kernel deve avere dimensione minima definita come \p KERNEL_LIMIT X KERNEL_LIMIT. \n
+ *        → il kernel deve avere una dimensione dispari e deve essere una matrice quadrata. \n
+ *
+ * @tparam      T               Tipo della matrice sorgente e della matrice kernel
+ * 
+ * @param[in]   src             Matrice di input
+ * @param[in]   kernel          Matrice kernel
+ * @param[in]   kernel_size     Dimensione della matrice kernel
+ * @param[in]   matrix_width    Lunghezza della matrice sorgente
+ * 
+ * @return Ritorna la posizione in cui la cross-correlazione assume il massimo valore.
+ * @retval std::size_t
+*/
+template <typename T>
+std::size_t argMaxCorrWithCopy(const T              *src, 
+                               const T              *kernel, 
+                               const std::size_t    kernel_size, 
+                               const std::size_t    matrix_width)
+{
+    inputParsing(src, kernel, kernel_size, matrix_width);
+
+    T max{0};
+    T tmp;
+    std::size_t max_idx{0};
+    const std::size_t pos = kernel_size / 2;
+
+    for (std::size_t i = pos; i < matrix_width - pos; i++) {
+        tmp = 0;
+        for (std::size_t j = 0; j < kernel_size; j++) {
+            for (std::size_t k = 0; k < kernel_size; k++) {
+                tmp += *(src + (j * matrix_width) + i - pos + k) * *(kernel + (j * kernel_size) + k);
+            }
+        }
+        if (tmp >= max) {
+            max = tmp;
+            max_idx = i - 1;
+        } 
+    }
+
+    return max_idx;
+}
+
+
+/**
+ * @brief Calcola la cross-correlazione tra \p src1 e \p src2 con un kernel di dimensione \p height X \p height.
+ * @note  → Le matrici \p src1 e \p src2 devono avere dimensione \p height X \p width. \n
+ *        → Le due matrici \p src1 e \p src2 devono avere la stessa atezza del kernel. \n
+ *        → Il vettore destinazione \p dst deve avere dimensione \p width - ( \p height - 1). \n
+ * 
+ * @tparam      T         Tipo delle matrici sorgenti e destinazione 
+ * 
+ * @param[in]   src1      Prima matrice di input
+ * @param[in]   src2      Seconda matrice di input
+ * @param[out]  dst       Vettore destinazione
+ * @param[in]   height    Dimensione del kernel, altezza delle due matrici \p src1, \p src2
+ * @param[in]   width     Lunghezza delle due matrici
+ * 
+ * @return void
+*/
+template <typename T>
+void argMaxCorrVectorWithCopy(const T           *src1, 
+                      const T           *src2, 
+                      T                 *dst, 
+                      const std::size_t height, 
+                      const std::size_t width)
+{
+    inputParsing(src1, src2, height, width);
+
+    if (!dst) {
+        std::cerr << "Invalid destination matrix" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE); 
+    }
+
+    T *k = new(std::nothrow) T[height * height];
+
+    if (!k) {
+        std::cerr << "Memory allocation failed" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE); 
+    }
+
+    for (std::size_t i = 0; i < width - (height - 1); i++) {       
+        copySrcToKernel<T>(src2, k, i, height, width);
+        *(dst + i) = argMaxCorrWithCopy<T>(src1, k, height, width);
+    }
+
+    delete[] k;
+}
+
+
+/**
+ * @brief Calcola la cross-correlazione tra \p src1 e \p src2 con un kernel di dimensione \p height X \p height.
+ * @note  → Le matrici \p src1 e \p src2 devono avere dimensione \p height X \p width. \n
+ *        → Le matrici \p src1 e \p src2 possono avere altezza maggiore o uguale a \p kernel_size. \n
+ *        → Il kernel deve avere una dimensione dispari e deve essere una matrice quadrata. \n
+ *        → La matrice destinazione deve avere dimensione (src_width - (kernel_size - 1)) * (src_height - (kernel_size - 1)). \n
+ * 
+ * @tparam      T           Tipo delle matrici sorgenti e destinazione 
+ * 
+ * @param[in]   src1        Prima matrice di input
+ * @param[in]   src2        Seconda matrice di input
+ * @param[out]  dst         Matrice destinazione
+ * @param[in]   width       Lunghezza delle due matrici \p src1, \p src2
+ * @param[in]   height      Altezza delle due matrici \p src1, \p src2
+ * @param[in]   kernel_size Dimensione del kernel
+ * 
+ * @return void
+*/
+template <typename T>
+void argMaxCorrMatWithCopy(const T              *src1, 
+                           const T              *src2, 
+                           T                    *dst, 
+                           const std::size_t    width, 
+                           const std::size_t    height, 
+                           const std::size_t    kernel_size)
+{
+    T *src1_k_rows = new(std::nothrow) T[width * kernel_size];
+
+    if (!src1_k_rows) {
+        std::cerr << "Memory allocation failed" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE);
+    }
+
+    T *src2_k_rows = new(std::nothrow) T[width * kernel_size];
+
+    if (!src2_k_rows) {
+        std::cerr << "Memory allocation failed" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE);
+    }
+
+    const std::size_t dst_vect_size = width - (kernel_size - 1);
+    T *dst_vect = new(std::nothrow) T[dst_vect_size];
+
+    if (!dst_vect) {
+        std::cerr << "Memory allocation failed" <<
+        "\n→ Line: " << __LINE__ << 
+        "\n→ Function: " << __func__  << 
+        "\n→ File: " << __FILE__ << std::endl;;
+        exit(EXIT_FAILURE);
+    }
+
+    for (std::size_t i = 0; i < (height - kernel_size) + 1; i++) {
+        copySrcToSrcKernelRows<T>(src1, src1_k_rows, i, kernel_size, width);
+        copySrcToSrcKernelRows<T>(src2, src2_k_rows, i, kernel_size, width);
+        argMaxCorrVectorWithCopy<T>(src1_k_rows, src2_k_rows, dst_vect, kernel_size, width);
+        concatDst<T>(dst_vect, dst, dst_vect_size, i);
+    }
+
+    delete src1_k_rows; delete src2_k_rows; delete dst_vect;
 }
