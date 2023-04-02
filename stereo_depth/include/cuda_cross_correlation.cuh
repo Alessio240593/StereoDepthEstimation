@@ -141,7 +141,7 @@ __host__ void tiledCrossCorrelation(T              *h_src1,
 {
     T *d_src1, d_src2, d_dest;
 
-    cudaError_t err = cudaMalloc((void**) &src1, )
+    cudaError_t err = cudaMalloc((void**)&src1, )
 }
 */
 
