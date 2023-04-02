@@ -23,7 +23,7 @@
 #include <map>
 #include <chrono>
 #include <sstream>
-#include <experimental/filesystem>
+// #include <experimental/filesystem>
 #include <iomanip>
 
 #include "path.hpp"
@@ -33,8 +33,8 @@ namespace parco {
 
 namespace analysis {
 
-//namespace fs = std::filesystem;
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
+//namespace fs = std::experimental::filesystem;
 #define DEBUG 1
 
 #if DEBUG
@@ -203,7 +203,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& stream, const Vector& v) 
     { 
-        //if (empty()) return stream;
+        if (v.empty()) return stream;
         for (std::size_t i = 0; i < (v.size() - 1); ++i)
         {
             stream << v[i] << ", ";
@@ -343,44 +343,7 @@ public:
         clear();
     }
 
-    template <typename R = T>
-    void dump_analysis_with_size(std::size_t rows, std::size_t cols, fs::path path = ".", std::size_t skip_first_n = 0)
-    {
-        if (fs::exists(path))
-        {
-            if (!fs::is_directory(path))
-            {
-                throw std::runtime_error("path is not a directory");
-            }
-        }
-        else 
-        {
-            fs::create_directories(path);
-        }
-
-        dump_values(path);
-        load_values(path);
-
-        std::ofstream f;
-        fs::path join_path{path};
-        join_path /= _s.empty() ? "analysis.csv" : _s + "_analysis.csv";
-
-        f.open(join_path);
-        if(!f.is_open() || !f.good()) 
-        {
-            throw std::runtime_error("dump analysis file open error");
-        }
-        f << "metric,value" << std::endl;
-        
-        f << "rows" << rows << std::endl;
-        f << "cols" << cols << std::endl;
-        f << "mean," << mean<R>(skip_first_n) << std::endl;
-        f << "std," << std<R>(skip_first_n) << std::endl;
-        f << "median," << median(skip_first_n) << std::endl;
-        f.close();
-        clear();
-    }
-
+    
     template <typename R = T>
     void dump(fs::path path = ".", std::size_t skip_first_n = 0)
     {
@@ -528,55 +491,6 @@ public:
         f.close();
     }
 
-
-    template <typename R = T>
-    void dump_analysis_with_size(std::size_t rows, std::size_t cols, std::string version, fs::path path = ".", std::size_t skip_first_n = 0)
-    {
-        if (fs::exists(path))
-        {
-            if (!fs::is_directory(path))
-            {
-                throw std::runtime_error("path is not a directory");
-            }
-        }
-        else 
-        {
-            fs::create_directories(path);
-        }
-
-        std::ofstream f;
-        fs::path join_path{path};
-        join_path /= _s.empty() ? "analysis.csv" : _s + "_analysis.csv";
-        fs::path values_path{path};
-        values_path /= _s.empty() ? "values" : _s + "_values";
-
-        f.open(join_path, std::ios_base::app);
-        if(!f.is_open() || !f.good()) 
-        {
-            throw std::runtime_error("dump analysis file open error");
-        }
-        f << "id,rows,cols,version,mean,std,median" << std::endl;
-        for (auto& v: _m)
-        {
-            v.dump_values(values_path);
-            v.load_values(values_path);
-            if (v.empty() || v.values().size() < skip_first_n)
-            {
-                v.clear();
-                continue;
-            }
-            f << v.name()
-              << "," << rows
-              << "," << cols
-              << "," << version
-              << "," << v.template mean<R>(skip_first_n)
-              << "," << v.template std<R>(skip_first_n) 
-              << "," << v.median(skip_first_n) 
-              << std::endl << std::endl;
-            v.clear();
-        }
-        f.close();
-    }
 
     template <typename R = T>
     void dump(fs::path path = ".", std::size_t skip_first_n = 0)
@@ -727,12 +641,6 @@ public:
         (void) skip_first_n;
     }
 
-    template <typename R = T>
-    void dump_analysis_with_size(std::size_t rows, std::size_t cols, std::string, fs::path path = ".", std::size_t skip_first_n = 0)
-    {
-        (void) path;
-        (void) skip_first_n;
-    }
 
     template <typename R = T>
     void dump(fs::path path = ".", std::size_t skip_first_n = 0)
@@ -803,13 +711,6 @@ public:
 
     template <typename R = T>
     void dump_analysis(fs::path path = ".", std::size_t skip_first_n = 0)
-    {
-        (void) path;
-        (void) skip_first_n;
-    }
-
-    template <typename R = T>
-    void dump_analysis_with_size(std::size_t rows, std::size_t cols, fs::path path = ".", std::size_t skip_first_n = 0)
     {
         (void) path;
         (void) skip_first_n;

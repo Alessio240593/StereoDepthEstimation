@@ -34,6 +34,9 @@
 
 #include <cstddef>
 #include <iostream>
+#include "stereodepth/cross_correlation.hpp"
+#include "cuda_cross_correlation.cuh"
+
 
 
 /**
@@ -54,7 +57,7 @@ template <typename T>
 void createMatrix(T             *src, 
                   std::size_t   rows, 
                   std::size_t   cols, 
-                  int           range)
+                  std::size_t   range)
 {
     std::srand(time(NULL));
 
@@ -111,10 +114,13 @@ bool checkAlgorithmConsistency(T            *firstImpl,
  * @note    Se l'asserzione non è rispettata la funzione stampa un messaggio di errore
  *          indicando il valore corrente e il valore atteso
  * 
- * @tparam      T       Tipo di dato utilizzato nell'asserzione
+ * @tparam      T           Tipo di dato utilizzato nell'asserzione
  * 
  * @param[in]   result      Risultato della funzione
  * @param[in]   expected    Valore atteso 
+ * @param[in]   rows        Numero di righe della matrice usata per il test
+ * @param[in]   cols        Numero di colonne della matrice usata per il test
+ * @param[in]   line        Posizione della chiamata \p assertVal
  * 
  *
  * 
@@ -122,18 +128,79 @@ bool checkAlgorithmConsistency(T            *firstImpl,
 */
 template <typename T>
 void assertVal(T            result, 
-               T            expected, 
+               T            expected,
+               std::size_t  rows,
+               std::size_t  cols,
                u_int16_t    line)
 {
     if (result != expected) {
         std::cerr << "\n\033[1;31m"
-                  << "==========ERROR==========="
-                  << "\n|| \tLine: " << line << "\t||" 
-                  << "\n|| \tCurrent: " << result << "\t||" 
-                  << "\n|| \tExpected: " << expected << "\t||"
-                  << "\n=========================="
+                  << "===========ERROR============"
+                  << "\n \tLine: " << line
+                  << "\n \tSize: " << rows << "x" << cols
+                  << "\n \tCurrent: " << result 
+                  << "\n \tExpected: " << expected
+                  << "\n============================"
                   << "\033[0m\n";
 
         exit(EXIT_FAILURE);
     }
+}
+
+
+/**
+ * @brief   Questa funzione lancia il test di consistenza nel calcolo tra le varie versioni,
+ *          per matrici di dimensione \p rows x \p cols
+ * @note    Il parametro range definisce i valori con cui verranno riempite le matrici in modo
+ *          randomico, l'intervallo parte da 0 fino a \p range - 1
+ * 
+ * @tparam      T           Tipo delle matrici utilizzate nel calcolo della cross correlazione
+ * 
+ * @param[in]   src_rows    Numero di righe della matrice usata per il test
+ * @param[in]   src_cols    Numero di colonne della matrice usata per il test 
+ * @param[in]   kernel_size Misura del kernel usato per il test
+ * @param[in]   block_dim_x Dimensione del blocco di thread nella coordinata x
+ * @param[in]   block_dim_y Dimensione del blocco di thread nella coordinata y
+ * @param[in]   range       Range di valori con cui verranno riempite le matrici per il test
+ * 
+ *
+ * 
+ * @return void
+*/
+template <typename T>
+void launchTest(std::size_t src_rows,
+                std::size_t src_cols,
+                std::size_t kernel_size,
+                std::size_t block_dim_x,
+                std::size_t block_dim_y,
+                std::size_t range)
+{
+    std::size_t dst_rows = src_rows - (kernel_size - 1);
+    std::size_t dst_cols = src_cols - (kernel_size - 1);
+
+    T *src1          = new T[src_rows * src_cols];
+    T *src2          = new T[src_rows * src_cols];
+    T *seq_dest      = new T[dst_rows * dst_cols];
+    T *par_dest      = new T[dst_rows * dst_cols];
+    T *seq_dest_copy = new T[dst_rows * dst_cols];
+
+    createMatrix<T>(src1, src_rows, src_cols, range);
+    createMatrix<T>(src2, src_rows, src_cols, range);
+
+    argMaxCorrMat<T>(src1, src2, seq_dest, src_cols, src_rows, kernel_size);
+
+    argMaxCorrMatWithCopy<T>(src1, src2, seq_dest_copy, src_cols, src_rows, kernel_size);
+
+    crossCorrelation<T>(src1, src2, par_dest, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
+
+    bool res = checkAlgorithmConsistency(seq_dest, par_dest, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
+    res = checkAlgorithmConsistency(seq_dest, seq_dest_copy, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
+    res = checkAlgorithmConsistency(seq_dest_copy, par_dest, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
+    delete [] src1; delete [] src2; delete [] seq_dest; delete [] par_dest; delete [] seq_dest_copy;
 }

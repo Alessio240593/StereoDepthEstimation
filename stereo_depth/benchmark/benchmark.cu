@@ -30,117 +30,42 @@
 
 
 
-#include "stereodepth/cross_correlation.hpp"
-#include "cuda_cross_correlation.cuh"
-#include "test_seq_par.hpp"
-#include "analysis.hpp"
-#include <fstream>
-#include <cstdio>
+#include "benchmark.hpp"
 
 
-#define KERNEL_SIZE 3
-#define RANGE 50
-#define ITERATION 300
-#define MIN_SIZE 32
-#define MAX_SIZE 1024
+#define MIN_SIZE        32
+#define MAX_SIZE        1024
+#define KERNEL_SIZE_MIN 3
+#define KERNEL_SIZE_MAX 12
+#define BLOCK_DIM_MIN   8
+#define BLOCK_DIM_MAX   512
 
+extern const std::vector<format::standardFormat>form;
 
-void benchmark(int rows, int cols)
-{
-    uint8_t *src1 = new uint8_t[rows * cols];
-    uint8_t *src2 = new uint8_t[rows * cols];
-    uint8_t *dest = new uint8_t[(rows - (KERNEL_SIZE - 1)) * (cols - (KERNEL_SIZE - 1))];
-
-    createMatrix<uint8_t>(src1, rows, cols, RANGE);
-    createMatrix<uint8_t>(src2, rows, cols, RANGE);
-
-    // benchmark versione sequenziale senza copia
-    parco::analysis::TimeVector<double> _seq;
-
-    for (size_t i = 0; i < ITERATION; i++) {
-        _seq.start();
-        argMaxCorrMat<uint8_t>(src1, src2, dest, cols, rows, KERNEL_SIZE);
-        _seq.stop();
-    }
-
-    parco::analysis::Matrix<double> matrix_analysis_seq(
-
-            {{"cpu_exec", _seq.values()}});
-
-    std::cout << "=========== MATRIX DATA ============\nrows\t cols\t alg_type\n " << rows << "\t  " << cols << "\t  seq\n";
-    matrix_analysis_seq.show_analysis();
-    matrix_analysis_seq.dump_analysis_with_size(rows, cols, "seq");
-
-    std::cout << "\n";
-
-    // benchmark versione sequenziale con copia
-    parco::analysis::TimeVector<double> _seqC;
-
-    for (size_t i = 0; i < ITERATION; i++) {
-        _seqC.start();
-        argMaxCorrMatWithCopy<uint8_t>(src1, src2, dest, cols, rows, KERNEL_SIZE);
-        _seqC.stop();
-    }
-
-    parco::analysis::Matrix<double> matrix_analysis_seqC(
-
-            {{"cpu_exec", _seqC.values()}});
-
-    std::cout << "=========== MATRIX DATA ============\nrows\t cols\t alg_type\n " << rows << "\t  " << cols << "\t  seqC\n";
-    matrix_analysis_seqC.show_analysis();
-    matrix_analysis_seqC.dump_analysis_with_size(rows, cols, "seqC");
-
-    std::cout << "\n";
-
-    // benchmark versione parallela con tempi di allocazione
-    parco::analysis::TimeVector<double> _parA;
-    double time;
-
-    for (size_t i = 0; i < ITERATION; i++) {
-        time = crossCorrelationTimeWithAllocation(src1, src2, dest, KERNEL_SIZE, rows, cols, rows / 4, cols / 4);
-        _parA.values().push_back(time);
-    }
-
-    parco::analysis::Matrix<double> matrix_analysis_parA(
-
-            {{"gpu_exec", _parA.values()}});
-
-    std::cout << "=========== MATRIX DATA ============\nrows\t cols\t alg_type\n " << rows << "\t  " << cols << "\t  parA\n";
-    matrix_analysis_parA.show_analysis();
-    matrix_analysis_parA.dump_analysis_with_size(rows, cols, "parA");
-
-    std::cout << "\n";
-
-    // benchmark versione parallela con tempi di allocazione
-    parco::analysis::TimeVector<double> _par;
-
-    for (size_t i = 0; i < ITERATION; i++) {
-        time = crossCorrelationTimeWithoutAllocation(src1, src2, dest, KERNEL_SIZE, rows, cols, rows / 4, cols / 4);
-        _par.values().push_back(time);
-    }
-
-    parco::analysis::Matrix<double> matrix_analysis_par(
-
-            {{"gpu_exec", _par.values()}});
-
-    std::cout << "=========== MATRIX DATA ============\nrows\t cols\t alg_type\n " << rows << "\t  " << cols << "\t  par\n";
-    matrix_analysis_par.show_analysis();
-    matrix_analysis_par.dump_analysis_with_size(rows, cols, "par");
-
-    delete [] src1; delete [] src2; delete [] dest;
-}
-
-namespace fs = std::filesystem;
 
 int main()
 {
-    if (fs::exists("analysis.csv")) {
-        std::remove("analysis.csv");
+    // Benchmark di matrici di dimensioni da MIN_SIZE a MAX_SIZE
+    std::string title("\n=============================================================================");
+    for (size_t rows_cols = MIN_SIZE; rows_cols < MAX_SIZE; rows_cols *= 2) {
+        for (size_t block_dim_x_y = BLOCK_DIM_MIN; block_dim_x_y <= (rows_cols / 2) && block_dim_x_y <= BLOCK_DIM_MAX; block_dim_x_y *= 2) {
+            for (size_t kernel_size = KERNEL_SIZE_MIN; kernel_size <= (rows_cols) && kernel_size <= KERNEL_SIZE_MAX; kernel_size += 2) {
+                benchmark<uint8_t>(rows_cols, rows_cols, kernel_size, block_dim_x_y, block_dim_x_y);
+                std::cout << title + "\n\t\tEND\n" + std::string(title.size(), '=') +  "\n\n";
+            }
+        }
     }
 
-    for (size_t size = MIN_SIZE; size < MAX_SIZE; size *= 2) {
-        benchmark(size, size);
-        std::cout << "\n====================================\n\t\tEND\n====================================\n\n";
+    // Benchmark di formati di matrice interessanti per il progetto
+    for (auto format : form) {
+        std::size_t rows = format.getRows();
+        std::size_t cols = format.getCols();
+        for (size_t block_dim_x_y = BLOCK_DIM_MIN; block_dim_x_y <= (rows / 2) && block_dim_x_y <= (cols / 2)  && block_dim_x_y <= BLOCK_DIM_MAX; block_dim_x_y *= 2) {
+            for (size_t kernel_size = KERNEL_SIZE_MIN; kernel_size <= rows && kernel_size <= cols && kernel_size <= KERNEL_SIZE_MAX; kernel_size += 2) {
+                benchmark<uint8_t>(rows, cols, kernel_size, block_dim_x_y, block_dim_x_y);
+                std::cout << title + "\n\t\tEND\n" + std::string(title.size(), '=') +  "\n\n";
+            }
+        }
     }
     
     exit(EXIT_SUCCESS);

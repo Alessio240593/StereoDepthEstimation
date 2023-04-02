@@ -38,11 +38,15 @@
 /// Dimensione del kernel
 #define KERNEL_SIZE 3
 /// Larghezza della matrice sorgente
-#define WIDTH 10
+#define WIDTH       10
 /// Altezza della matrice sorgente
-#define HEIGHT 3
+#define HEIGHT      3
 /// Incremento delle matrici sorgenti (src3 e src4)
-#define INC 2
+#define INC         2
+// Dimensioni del blocco di thread lungo la dimensione x
+#define BLOCK_DIM_X 3
+// Dimensioni del blocco di thread lungo la dimensione y
+#define BLOCK_DIM_Y 3
 
 
 int main()
@@ -77,7 +81,7 @@ int main()
 
     std::vector<uint8_t> dst_matrix((WIDTH - (KERNEL_SIZE - 1)) * ((HEIGHT + INC) - (KERNEL_SIZE - 1)), 0);
 
-    crossCorrelation<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), KERNEL_SIZE, (HEIGHT + INC), WIDTH);
+    crossCorrelation<uint8_t>(src3.data(), src4.data(), dst_matrix.data(), KERNEL_SIZE, (HEIGHT + INC), WIDTH, BLOCK_DIM_X, BLOCK_DIM_Y);
 
     // Stampo la matrice src3
     uint8_t  *pSrc = src3.data();

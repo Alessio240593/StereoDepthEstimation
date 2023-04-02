@@ -33,3 +33,7 @@
 
 # Custom
 build/
+
+#python
+*.idea
+venv/

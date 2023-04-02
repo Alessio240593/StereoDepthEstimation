@@ -40,9 +40,6 @@
 #include <stdio.h>
 
 
-#define DIM_BLOCK_X 5
-#define DIM_BLOCK_Y 5
-
 
 /**
  * @brief   Controlla se la chiamata a funzioni CUDA è andata a buon fine, altrimenti stampa un messaggio di errore
@@ -120,7 +117,33 @@ __global__ void crossCorrelationKernel(T              *d_src1,
         *(d_dest + dPos) = max_idx;
     }
 }
+/*
+template <typename T>
+__global__ void tiledCrossCorrelationKernel(T              *d_src1, 
+                                            T              *d_src2,
+                                            T              *d_dest,
+                                            std::size_t    kernel_size, 
+                                            std::size_t    matrix_src_rows,
+                                            std::size_t    matrix_src_cols)
+{
+    int col = blockDim.x * blockIdx.x + threadIdx.x;
+    int row = blockDim.y * blockIdx.y + threadIdx.y;
+    __shared__ int 
+}
 
+template <typename T>
+__host__ void tiledCrossCorrelation(T              *h_src1, 
+                                    T              *h_src2,
+                                    T              *h_dest,
+                                    std::size_t    kernel_size, 
+                                    std::size_t    matrix_rows,
+                                    std::size_t    matrix_cols)
+{
+    T *d_src1, d_src2, d_dest;
+
+    cudaError_t err = cudaMalloc((void**) &src1, )
+}
+*/
 
 /**
  * @brief Calcola la cross-correlazione tra \p src1 e \p src2 con un kernel di dimensione \p kernel_size X \p kernel_size.
@@ -137,6 +160,8 @@ __global__ void crossCorrelationKernel(T              *d_src1,
  * @param[in]   kernel_size     Dimensione del kernel
  * @param[in]   matrix_rows     Altezza delle due matrici \p src1, \p src2
  * @param[in]   matrix_cols     Lunghezza delle due matrici \p src1, \p src2
+ * @param[in]   block_dim_x     Dimensioni del blocco di thread lungo la dimensione x
+ * @param[in]   block_dim_y     Dimensioni del blocco di thread lungo la dimensione y
  * 
  * 
  * 
@@ -148,7 +173,9 @@ __host__ void crossCorrelation(T              *h_src1,
                                T              *h_dest,
                                std::size_t    kernel_size, 
                                std::size_t    matrix_rows,
-                               std::size_t    matrix_cols)
+                               std::size_t    matrix_cols, 
+                               std::size_t    block_dim_x,
+                               std::size_t    block_dim_y)
 {
     T *d_src1, *d_src2, *d_dest;
 
@@ -157,8 +184,8 @@ __host__ void crossCorrelation(T              *h_src1,
     float dest_cols = matrix_cols - (kernel_size - 1);
     std::size_t dest_size{dest_rows * dest_cols * sizeof(T)};
     
-    dim3 dimGrid(ceil(dest_cols / DIM_BLOCK_Y), ceil(dest_rows / DIM_BLOCK_X), 1);
-    dim3 dimBlock(DIM_BLOCK_Y, DIM_BLOCK_X, 1);
+    dim3 dimGrid(ceil(dest_cols / block_dim_y), ceil(dest_rows / block_dim_x), 1);
+    dim3 dimBlock(block_dim_y, block_dim_x, 1);
 
     cudaError_t err = cudaMalloc((void**)&d_src1, src_size);
     checkCudaError(err, "cudaMalloc", __LINE__);
@@ -201,7 +228,8 @@ __host__ void crossCorrelation(T              *h_src1,
  * @param[in]   kernel_size     Dimensione del kernel
  * @param[in]   matrix_rows     Altezza delle due matrici \p src1, \p src2
  * @param[in]   matrix_cols     Lunghezza delle due matrici \p src1, \p src2
- * 
+ * @param[in]   block_dim_x     Dimensioni del blocco di thread lungo la dimensione x
+ * @param[in]   block_dim_y     Dimensioni del blocco di thread lungo la dimensione y
  * 
  * 
  * @return void
@@ -226,28 +254,30 @@ __host__ double crossCorrelationTimeWithAllocation(T              *h_src1,
     dim3 dimGrid(ceil(dest_cols / dim_block_y), ceil(dest_rows / dim_block_x), 1);
     dim3 dimBlock(dim_block_y, dim_block_x, 1);
 
+    cudaError_t err = cudaMalloc((void**)&d_src1, src_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
+    err = cudaMalloc((void**)&d_src2, src_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
+    err = cudaMalloc((void**)&d_dest, dest_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
     // Prepare
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
+    // TODO spostare malloc sotto e includere solo le memcpy nel calcolo del tempo
+
     // Start record
     cudaEventRecord(start, 0);
-
-    cudaError_t err = cudaMalloc((void**)&d_src1, src_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
 
     err = cudaMemcpy(d_src1, h_src1, src_size, cudaMemcpyHostToDevice);
     checkCudaError(err, "cudaMemcpy", __LINE__);
 
-    err = cudaMalloc((void**)&d_src2, src_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
-
     err = cudaMemcpy(d_src2, h_src2, src_size, cudaMemcpyHostToDevice);
     checkCudaError(err, "cudaMemcpy", __LINE__);
-
-    err = cudaMalloc((void**)&d_dest, dest_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
 
     crossCorrelationKernel<T><<<dimGrid, dimBlock>>>(d_src1, d_src2, d_dest, kernel_size, matrix_rows, matrix_cols);
 
@@ -285,7 +315,8 @@ __host__ double crossCorrelationTimeWithAllocation(T              *h_src1,
  * @param[in]   kernel_size     Dimensione del kernel
  * @param[in]   matrix_rows     Altezza delle due matrici \p src1, \p src2
  * @param[in]   matrix_cols     Lunghezza delle due matrici \p src1, \p src2
- * 
+ * @param[in]   block_dim_x     Dimensioni del blocco di thread lungo la dimensione x
+ * @param[in]   block_dim_y     Dimensioni del blocco di thread lungo la dimensione y
  * 
  * 
  * @return void

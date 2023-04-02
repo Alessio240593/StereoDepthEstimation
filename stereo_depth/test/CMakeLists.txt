@@ -20,13 +20,7 @@ add_dependencies(tests ${UNIT_TESTS})
 
 # TEST VERSIONE SEQUENZIALE CON COPIA, SEQUENZIALE SENZA COPIA E PARALLELA
 set(UNIT_TESTS_SEQ_PAR
-    test_seq_par_32x32
-    test_seq_par_64x64
-    test_seq_par_128x128
-    test_seq_par_256x256
-    test_seq_par_512x512
-    #test_seq_par_1024x1024
-    #test_seq_par_2048x2048
+    test_seq_par
 )
 
 foreach(TEST ${UNIT_TESTS_SEQ_PAR})

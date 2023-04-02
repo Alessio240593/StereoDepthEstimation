@@ -453,10 +453,10 @@ std::size_t argMaxCorrWithCopy(const T              *src,
 */
 template <typename T>
 void argMaxCorrVectorWithCopy(const T           *src1, 
-                      const T           *src2, 
-                      T                 *dst, 
-                      const std::size_t height, 
-                      const std::size_t width)
+                              const T           *src2, 
+                              T                 *dst, 
+                              const std::size_t height, 
+                              const std::size_t width)
 {
     inputParsing(src1, src2, height, width);
 

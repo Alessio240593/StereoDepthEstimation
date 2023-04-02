@@ -38,11 +38,11 @@
 /// Dimensione del kernel
 #define KERNEL_SIZE 3
 /// Larghezza della matrice sorgente
-#define WIDTH 10
+#define WIDTH       10
 /// Altezza della matrice sorgente
-#define HEIGHT 3
+#define HEIGHT      3
 /// Incremento delle matrici sorgenti (src3 e src4)
-#define INC 2
+#define INC         2
 
 int main()
 {
