@@ -35,7 +35,12 @@
 #            define INCLUDE_STD_FILESYSTEM_EXPERIMENTAL 1
 #        endif // #ifndef INCLUDE_STD_FILESYSTEM_EXPERIMENTAL
 #    else  // #ifdef _MSC_VER
-#        define INCLUDE_STD_FILESYSTEM_EXPERIMENTAL 0
+#        // C++14 and before must use the exxperimental tag
+#        if __cplusplus <= 201402L
+#           define INCLUDE_STD_FILESYSTEM_EXPERIMENTAL 1
+#        else
+#           define INCLUDE_STD_FILESYSTEM_EXPERIMENTAL 0
+#        endif // #ifdef _MSC_VER
 #    endif // #ifdef _MSC_VER
 
 // Check if the header <experimental/filesystem> exists.

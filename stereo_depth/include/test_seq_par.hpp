@@ -178,11 +178,12 @@ void launchTest(std::size_t src_rows,
     std::size_t dst_rows = src_rows - (kernel_size - 1);
     std::size_t dst_cols = src_cols - (kernel_size - 1);
 
-    T *src1          = new T[src_rows * src_cols];
-    T *src2          = new T[src_rows * src_cols];
-    T *seq_dest      = new T[dst_rows * dst_cols];
-    T *par_dest      = new T[dst_rows * dst_cols];
-    T *seq_dest_copy = new T[dst_rows * dst_cols];
+    T *src1                = new T[src_rows * src_cols];
+    T *src2                = new T[src_rows * src_cols];
+    T *seq_dest            = new T[dst_rows * dst_cols];
+    T *par_dest            = new T[dst_rows * dst_cols];
+    T *seq_dest_copy       = new T[dst_rows * dst_cols];
+    T *par_shared_mem_dest = new T[dst_rows * dst_cols];
 
     createMatrix<T>(src1, src_rows, src_cols, range);
     createMatrix<T>(src2, src_rows, src_cols, range);
@@ -193,14 +194,25 @@ void launchTest(std::size_t src_rows,
 
     crossCorrelation<T>(src1, src2, par_dest, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
 
+    sharedMemoryCrossCorrelation<T>(src1, src2, par_shared_mem_dest, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
+
     bool res = checkAlgorithmConsistency(seq_dest, par_dest, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
     res = checkAlgorithmConsistency(seq_dest, seq_dest_copy, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
+    res = checkAlgorithmConsistency(seq_dest, par_shared_mem_dest, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
     res = checkAlgorithmConsistency(seq_dest_copy, par_dest, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
-    delete [] src1; delete [] src2; delete [] seq_dest; delete [] par_dest; delete [] seq_dest_copy;
+    res = checkAlgorithmConsistency(seq_dest_copy, par_shared_mem_dest, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
+    res = checkAlgorithmConsistency(par_dest, par_shared_mem_dest, dst_rows, dst_cols);
+    assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
+
+    delete [] src1; delete [] src2; delete [] seq_dest; delete [] par_dest; delete [] seq_dest_copy; delete [] par_shared_mem_dest;
 }

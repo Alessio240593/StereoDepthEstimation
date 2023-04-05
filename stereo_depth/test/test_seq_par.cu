@@ -41,6 +41,7 @@
 #define MIN_SIZE 32
 #define MAX_SIZE 2048
 #define RANGE    50
+#define INC      2
 
 
 
@@ -50,11 +51,11 @@ int main()
     std::size_t kernel_size = 7;
     std::size_t block_dim_x = 8;
     std::size_t block_dim_y = 8;
-    for (std::size_t rows_cols = MIN_SIZE; rows_cols <= MAX_SIZE; rows_cols *= 2) {
+    for (std::size_t rows_cols = MIN_SIZE; rows_cols <= MAX_SIZE; rows_cols *= INC) {
         launchTest<uint8_t>(rows_cols, rows_cols, kernel_size, block_dim_x, block_dim_y, RANGE);
-        kernel_size += 2;
-        block_dim_x *= 2;
-        block_dim_y *= 2;
+        kernel_size += INC;
+        block_dim_x *= INC;
+        block_dim_y *= INC;
     }
 
     // Test di formati di matrice interessanti per il progetto

@@ -1,0 +1,26 @@
+{
+    "remotePath": "/home/azattoni/cpp/",
+    "host": "parco04.di.univr.it",
+    "username": "azattoni",
+    "password": "azattoni",
+    "port": 21,
+    "secure": true,
+    "protocol": "ftp",
+    "uploadOnSave": false,
+    "passive": false,
+    "debug": false,
+    "privateKeyPath": null,
+    "passphrase": null,
+    "agent": null,
+    "allow": [],
+    "ignore": [
+        "\\.vscode",
+        "\\.git",
+        "\\.DS_Store"
+    ],
+    "generatedFiles": {
+        "extensionsToInclude": [],
+        "path": ""
+    },
+    "detailedSyncSummary": true
+}
