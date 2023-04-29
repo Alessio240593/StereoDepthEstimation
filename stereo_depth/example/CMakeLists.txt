@@ -1,5 +1,6 @@
 set(EXAMPLES
     main_cpu
+    
 )
 
 foreach(EX ${EXAMPLES})

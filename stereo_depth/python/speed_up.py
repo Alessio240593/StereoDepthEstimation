@@ -2,7 +2,16 @@ import os
 import pandas as pd
 
 
-def calculate_speed_up(df: pd.DataFrame):
+def calculate_speed_up(df: pd.DataFrame, f: str):
+    """
+    Calcola lo speed up per il file f passato come parametro
+
+    :param df:  Data frame del file corrente
+    :param f:   File corrente
+    :return:    Lo speed up calcolato per il file f
+    :rtype:     void
+    """
+
     seq_c_mean = float(df.iloc[[0]]['mean'])
     seq_c_median = float(df.iloc[[0]]['median'])
     seq_mean = float(df.iloc[[1]]['mean'])
@@ -31,17 +40,28 @@ def calculate_speed_up(df: pd.DataFrame):
     dff.to_csv(f, index=False)
 
 
-# Per ogni file calcolo lo speedup
-directory = "../build/benchmark/results"
+def speed_up(directory: str):
+    """
+    Calcola lo speed up per ogni file nella directory passata come parametro
 
-if not os.path.exists(directory):
-    raise NotADirectoryError(directory, "not exists")
+    :param directory:   Directory contenente i file di interesse per il calcolo dello speed up
+    :return:            Scrive lo speed up direttamente in ogni file
+    :rtype:     void
+    """
+    # Per ogni file calcolo lo speedup
+    if not os.path.exists(directory):
+        raise NotADirectoryError(directory, "not exists")
 
-for filename in os.listdir(directory):
-    f = os.path.join(directory, filename)
-    if os.path.isfile(f):
-        df = pd.read_csv(f)
-        if 'SpeedUp' in df.values:
-            continue
-        else:
-            calculate_speed_up(df)
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+        if os.path.isfile(f):
+            df = pd.read_csv(f)
+            if 'SpeedUp' in df.values:
+                continue
+            else:
+                calculate_speed_up(df, f)
+    print('→ Speed up calculated successfully!\n→ File path: ' + directory)
+
+
+if __name__ == '__main__':
+    speed_up('../build/benchmark/results/32-512_formats')

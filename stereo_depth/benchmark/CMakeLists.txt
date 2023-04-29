@@ -2,6 +2,7 @@ include_directories(test)
 
 set(BENCHMARK
     benchmark
+    standard_formats_benchmark
 )
 
 foreach(BE ${BENCHMARK})

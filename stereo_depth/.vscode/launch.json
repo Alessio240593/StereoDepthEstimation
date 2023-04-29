@@ -1,50 +1,19 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-  
-      {
-          "type": "lldb",
-          "request": "launch",
-          "name": "Debug",
-          "program": "${fileDirname}/${fileBasenameNoExtension}.bin",
-          "args": [],
-          "cwd": "${workspaceFolder}",
-          "preLaunchTask": "Compile Swift",
-          "MiMode": "lldb",
-          "stopAtEntry": false,
-          "externalConsole": false,
-          "environment": [],
-          "debug.inlineValues": true,
-          "setupCommands": [
-            {
-              "description": "Enable pretty-printing for gdb",
-              "text": "-enable-pretty-printing",
-              "ignoreFailures": true
-            }
-          ],
-          "internalConsoleOptions": "openOnSessionStart",
-          "miDebuggerPath": "/usr/share/swift/usr/bin/lldb"
-      },
-    {
-      "name": "g++ build and debug active file",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${fileDirname}/${fileBasenameNoExtension}",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
         {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
+            "name": "CUDA C++: Launch",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/example/main_gpu_shared"
+        },
+        {
+            "name": "CUDA C++: Attach",
+            "type": "cuda-gdb",
+            "request": "attach"
         }
-      ],
-      "preLaunchTask": "g++ build active file",
-      "miDebuggerPath": "/usr/bin/gdb"
-    }
-  ]
+    ]
 }

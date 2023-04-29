@@ -87,15 +87,15 @@ __global__ void crossCorrelationKernel(T              *d_src1,
                                        std::size_t    matrix_src_rows,
                                        std::size_t    matrix_src_cols)
 {
-    int shift_on_axis = kernel_size / 2;
-    int sRow = blockDim.y * blockIdx.y + threadIdx.y + shift_on_axis;
-    int sCol = blockDim.x * blockIdx.x + threadIdx.x + shift_on_axis;
-    int dRow = blockDim.y * blockIdx.y + threadIdx.y;
-    int dCol = blockDim.x * blockIdx.x + threadIdx.x;
+    std::size_t shift_on_axis = kernel_size / 2;
+    std::size_t sRow = blockDim.y * blockIdx.y + threadIdx.y + shift_on_axis;
+    std::size_t sCol = blockDim.x * blockIdx.x + threadIdx.x + shift_on_axis;
+    std::size_t dRow = blockDim.y * blockIdx.y + threadIdx.y;
+    std::size_t dCol = blockDim.x * blockIdx.x + threadIdx.x;
 
-    int matrix_dest_cols = matrix_src_cols - (kernel_size - 1);
-    int matrix_dest_rows = matrix_src_rows - (kernel_size - 1);
-    int dPos = dRow * matrix_dest_cols + dCol;
+    std::size_t matrix_dest_cols = matrix_src_cols - (kernel_size - 1);
+    std::size_t matrix_dest_rows = matrix_src_rows - (kernel_size - 1);
+    std::size_t dPos = dRow * matrix_dest_cols + dCol;
     std::size_t max_idx{0};
     T max{0};
     T tmp;
@@ -117,106 +117,6 @@ __global__ void crossCorrelationKernel(T              *d_src1,
         *(d_dest + dPos) = max_idx;
     }
 }
-
-
-
-template <typename T>
-__global__ void sharedMemoryCrossCorrelationKernel(T              *d_src1, 
-                                                   T              *d_src2,
-                                                   T              *d_dest,
-                                                   std::size_t    kernel_size, 
-                                                   std::size_t    matrix_src_rows,
-                                                   std::size_t    matrix_src_cols)
-        {
-
-    int shift_on_axis = kernel_size / 2;
-    int sRow = blockDim.y * blockIdx.y + threadIdx.y;
-    int sCol = blockDim.x * blockIdx.x + threadIdx.x;
-    int dRow = blockDim.y * blockIdx.y + threadIdx.y - shift_on_axis;
-    int dCol = blockDim.x * blockIdx.x + threadIdx.x - shift_on_axis;
-
-    int pos = sRow * matrix_src_cols + sCol;
-
-    extern __shared__ int d_shmem1[];
-    extern __shared__ int d_shmem2[];
-
-    d_shmem1[pos] = d_src1[pos];
-    d_shmem2[pos] = d_src2[pos];
-
-    __syncthreads();
-
-    int matrix_dest_cols = matrix_src_cols - (kernel_size - 1);
-    int matrix_dest_rows = matrix_src_rows - (kernel_size - 1);
-    int dPos = dRow * matrix_dest_cols + dCol;
-    std::size_t max_idx{0};
-    T max{0};
-    T tmp;
-
-    if (dRow < matrix_dest_rows && dCol < matrix_dest_cols) {
-        for (std::size_t i = shift_on_axis; i < matrix_src_cols - shift_on_axis; i++) {
-            tmp = 0;
-            for (std::size_t j = sRow - shift_on_axis; j <= sRow + shift_on_axis; j++) {
-                for (std::size_t k = 0, l = sCol - shift_on_axis; k < kernel_size, l <= sCol + shift_on_axis; k++, l++) {
-                    tmp += *(d_shmem1 + (j * matrix_src_cols) + k + (i - shift_on_axis)) * *(d_shmem2 + (j * matrix_src_cols) + l);
-                }
-            }
-
-            if (tmp >= max) {
-                max = tmp;
-                max_idx = i - 1;
-            } 
-        }
-        *(d_dest + dPos) = max_idx;
-    }
-    
-}
-
-
-template <typename T>
-__host__ void sharedMemoryCrossCorrelation(T              *h_src1, 
-                                           T              *h_src2,
-                                           T              *h_dest,
-                                           std::size_t    kernel_size, 
-                                           std::size_t    matrix_rows,
-                                           std::size_t    matrix_cols,
-                                           std::size_t    block_dim_x,
-                                           std::size_t    block_dim_y)
-{
-    T *d_src1, *d_src2, *d_dest;
-
-    std::size_t src_size{matrix_rows * matrix_cols * sizeof(T)};
-    float dest_rows = matrix_rows - (kernel_size - 1);
-    float dest_cols = matrix_cols - (kernel_size - 1);
-    std::size_t dest_size{dest_rows * dest_cols * sizeof(T)};
-    
-    dim3 dimGrid(ceil(float(matrix_cols) / block_dim_y), ceil(float(matrix_rows) / block_dim_x), 1);
-    dim3 dimBlock(block_dim_y, block_dim_x, 1);
-
-    cudaError_t err = cudaMalloc((void**)&d_src1, src_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
-
-    err = cudaMemcpy(d_src1, h_src1, src_size, cudaMemcpyHostToDevice);
-    checkCudaError(err, "cudaMemcpy", __LINE__);
-
-    err = cudaMalloc((void**)&d_src2, src_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
-
-    err = cudaMemcpy(d_src2, h_src2, src_size, cudaMemcpyHostToDevice);
-    checkCudaError(err, "cudaMemcpy", __LINE__);
-
-    err = cudaMalloc((void**)&d_dest, dest_size);
-    checkCudaError(err, "cudaMalloc", __LINE__);
-
-    sharedMemoryCrossCorrelationKernel<T><<<dimGrid, dimBlock, (matrix_cols * matrix_rows)>>>(d_src1, d_src2, d_dest, kernel_size, matrix_rows, matrix_cols);
-
-    cudaDeviceSynchronize();
-
-    err = cudaMemcpy(h_dest, d_dest, dest_size, cudaMemcpyDeviceToHost);
-    checkCudaError(err, "cudaMemcpy", __LINE__);
-
-    cudaFree(d_src1); cudaFree(d_src2); cudaFree(d_dest);
-}
-
 
 
 /**
@@ -277,6 +177,229 @@ __host__ void crossCorrelation(T              *h_src1,
     checkCudaError(err, "cudaMalloc", __LINE__);
 
     crossCorrelationKernel<T><<<dimGrid, dimBlock>>>(d_src1, d_src2, d_dest, kernel_size, matrix_rows, matrix_cols);
+
+    cudaDeviceSynchronize();
+
+    err = cudaMemcpy(h_dest, d_dest, dest_size, cudaMemcpyDeviceToHost);
+    checkCudaError(err, "cudaMemcpy", __LINE__);
+
+    cudaFree(d_src1); cudaFree(d_src2); cudaFree(d_dest);
+}
+
+
+/**
+ * @brief   Kernel per il calcolo della cross-correlazione, viene richiamato dalla funzione \p sharedMemoryCrossCorrelation.
+ *          Questo kernel sfrutta la shared memory per velocizzare gli accessi in memoria.
+ * @note    err deve essere di tipo \p cudaError_t
+ * 
+ * @tparam      T                   Tipo delle matrici sorgenti e destinazione 
+ * 
+ * @param[in]   d_src1              Prima matrice di input
+ * @param[in]   d_src2              Seconda matrice di input
+ * @param[out]  d_dst               Matrice destinazione
+ * @param[in]   kernel_size         Dimensione del kernel
+ * @param[in]   matrix_src_rows     Altezza delle due matrici \p src1, \p src2
+ * @param[in]   matrix_src_cols     Lunghezza delle due matrici \p src1, \p src2
+ * 
+ * 
+ * 
+ * @return void
+*/
+template <typename T>
+__global__ void sharedMemoryCrossCorrelationKernel(T              *d_src1, 
+                                                   T              *d_src2,
+                                                   T              *d_dest,
+                                                   std::size_t    kernel_size, 
+                                                   std::size_t    matrix_src_rows,
+                                                   std::size_t    matrix_src_cols)
+{
+    std::size_t sRow = blockDim.y * blockIdx.y + threadIdx.y;
+    std::size_t sCol = blockDim.x * blockIdx.x + threadIdx.x;
+    std::size_t pos = sRow * matrix_src_cols + sCol;
+    
+    extern __shared__ T d_shmem[];
+
+    T *d_shmem1 = &d_shmem[0];
+    T *d_shmem2 = &d_shmem[(blockDim.y + (2 *(kernel_size / 2))) * matrix_src_cols];
+
+    // if (threadIdx.y == 0) {
+    //     for (size_t i = 0; i < matrix_src_rows; i++) {
+    //         for (size_t j = 0; j < matrix_src_cols; j++) {
+    //             d_shmem1[i * matrix_src_cols + j] =  *(d_src1 + (i * matrix_src_cols) + j);
+    //             d_shmem2[i * matrix_src_cols + j] =  *(d_src2 + (i * matrix_src_cols) + j);
+    //         }
+    //     }
+    // }
+
+    // TODO sistemare gli indici pensando di caricare i valori da zero in poi
+    // Carico i valori in shared memory
+    // for (size_t j = 0; j <= (matrix_src_cols / blockDim.y); j++) {
+    //     *(d_shmem1 + (pos + (j * blockDim.y) - (blockIdx.y * blockDim.y))) =  *(d_src1 + (pos + (j * blockDim.y) - (blockIdx.y * blockDim.y)));
+    //     *(d_shmem2 + (pos + (j * blockDim.y) - (blockIdx.y * blockDim.y))) =  *(d_src2 + (pos + (j * blockDim.y) - (blockIdx.y * blockDim.y)));
+    // }
+
+    // TODO bisgna aumentare la memoria
+    // for (size_t i = 0; i < int((float(matrix_src_cols - 1) / blockDim.x) + 1) && ((i * blockDim.x) + threadIdx.x) < matrix_src_cols; i++) {
+    //     // if(pos == 0) {
+    //     //     printf("threadidx: %d\n", threadIdx.x);
+    //     //     printf("Accesso: %d\n", ((i * (blockDim.x)) + threadIdx.x) + (threadIdx.y * matrix_src_cols));
+    //     // }
+    //     *(d_shmem1 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src1 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols));
+    //     *(d_shmem2 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src2 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols));
+    // }
+
+    if (blockIdx.x == 0) {
+        for (size_t i = 0; i < int((float(matrix_src_cols - 1) / blockDim.x) + 1) && ((i * blockDim.x) + threadIdx.x) < matrix_src_cols; i++) {
+            // if(pos == 0) {
+            //     printf("threadidx: %d\n", threadIdx.x);
+            //     printf("Accesso: %d\n", ((i * (blockDim.x)) + threadIdx.x) + (threadIdx.y * matrix_src_cols));
+            // }
+            *(d_shmem1 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src1 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols));
+            *(d_shmem2 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src2 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols));
+        }
+
+        if (threadIdx.x == (blockDim.y - 1)) {
+            for (size_t j = 1; j <= kernel_size / 2; j++) {
+                for (size_t i = 0; i < int((float(matrix_src_cols - 1) / blockDim.x) + 1) && ((i * blockDim.x) + threadIdx.x) < matrix_src_cols; i++) {
+                    *(d_shmem1 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols) + (j * matrix_src_cols)) = *(d_src1 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (j * matrix_src_cols));
+                    *(d_shmem2 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols) + (j * matrix_src_cols)) = *(d_src2 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (j * matrix_src_cols));
+                }
+            }  
+        }
+    }
+    else if (blockIdx.x == (blockDim.x - 1)) { // TODO terminare questa parte e fare la parte del blocco centrale
+        if (threadIdx.x == 0) {
+            for (size_t j = 0, k = (blockDim.x - 1) - (kernel_size / 2); j < kernel_size / 2 && k <= kernel_size / 2; j++, k++) {
+                for (size_t i = 0; i < int((float(matrix_src_cols - 1) / blockDim.x) + 1) && ((i * blockDim.x) + threadIdx.x) < matrix_src_cols; i++) {
+                    *(d_shmem1 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src1 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (k * matrix_src_cols));
+                    *(d_shmem2 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols)) = *(d_src2 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (k * matrix_src_cols));
+                }
+            }  
+        }
+
+        for (size_t i = 0; i < int((float(matrix_src_cols - 1) / blockDim.x) + 1) && ((i * blockDim.x) + threadIdx.x) < matrix_src_cols; i++) {
+            // if(pos == 0) {
+            //     printf("threadidx: %d\n", threadIdx.x);
+            //     printf("Accesso: %d\n", ((i * (blockDim.x)) + threadIdx.x) + (threadIdx.y * matrix_src_cols));
+            // }
+            *(d_shmem1 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols) + ((kernel_size / 2) * matrix_src_cols)) = *(d_src1 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (((kernel_size / 2) + 1) * matrix_src_cols));
+            *(d_shmem2 + ((i * blockDim.x) + threadIdx.x) + (threadIdx.y * matrix_src_cols) + ((kernel_size / 2) * matrix_src_cols)) = *(d_src2 + ((i * blockDim.x) + threadIdx.x) + (sRow * matrix_src_cols) + (((kernel_size / 2) + 1) * matrix_src_cols));
+        }
+        
+    }
+
+
+    
+    __syncthreads(); 
+
+    std::size_t shift_on_axis = kernel_size / 2;
+    std::size_t dRow = blockDim.y * blockIdx.y + threadIdx.y - shift_on_axis;
+    std::size_t dCol = blockDim.x * blockIdx.x + threadIdx.x - shift_on_axis;
+
+    std::size_t matrix_dest_cols = matrix_src_cols - (kernel_size - 1);
+    std::size_t matrix_dest_rows = matrix_src_rows - (kernel_size - 1);
+    std::size_t dPos = dRow * matrix_dest_cols + dCol;
+    std::size_t max_idx{0};
+    T max{0};
+    T tmp;
+
+    if(blockIdx.x == 1 && blockIdx.y == 0 && threadIdx.y == 0 && threadIdx.x == 0) {
+        printf("shmem1:\n");
+        for (size_t i = 0; i < blockDim.y + 2 * (kernel_size / 2); i++) {
+            for (size_t j= 0; j < matrix_src_cols; j++) {
+                printf("%d ", d_shmem1[(i * matrix_src_cols) + j]);
+            }
+            printf("\n");
+        }
+
+        printf("shmem2:\n");
+        for (size_t i = 0; i < blockDim.y + 2 * (kernel_size / 2); i++) {
+            for (size_t j= 0; j < matrix_src_cols; j++) {
+                printf("%d ", d_shmem2[(i * matrix_src_cols) + j]);
+            }
+            printf("\n");
+        }
+    }
+    
+
+    if (sRow <= matrix_dest_rows && sCol <= matrix_dest_cols && sRow >= shift_on_axis && sCol >= shift_on_axis) {
+        for (std::size_t i = shift_on_axis; i < matrix_src_cols - shift_on_axis; i++) {
+            tmp = 0;
+            for (std::size_t j = 0 ; j < blockDim.y; j++) {
+                for (std::size_t k = 0, l = sCol - shift_on_axis; k < kernel_size, l <= sCol + shift_on_axis; k++, l++) {
+                    tmp += *(d_shmem1 + (j * matrix_src_cols) + k + (i - shift_on_axis)) * *(d_shmem2 + (j * matrix_src_cols) + l);
+                }
+            }
+
+            if (tmp >= max) {
+                max = tmp;
+                max_idx = i - 1; // TODO sistemare il -1 con lo shift on axis
+            } 
+        }
+        *(d_dest + dPos) = max_idx;
+    }
+}
+
+
+/**
+ * @brief Calcola la cross-correlazione tra \p src1 e \p src2 con un kernel di dimensione \p kernel_size X \p kernel_size.
+ *        Questa funzione sfrutta la shared memory per velocizzare gli accessi in memoria
+ * @note  → Le matrici \p src1 e \p src2 devono avere dimensione \p height X \p width. \n
+ *        → Le matrici \p src1 e \p src2 possono avere altezza maggiore o uguale a \p kernel_size. \n
+ *        → Il kernel deve avere una dimensione dispari e deve essere una matrice quadrata. \n
+ *        → La matrice destinazione deve avere dimensione (src_width - (kernel_size - 1)) * (src_height - (kernel_size - 1)). \n
+ * 
+ * @tparam      T               Tipo delle matrici sorgenti e destinazione 
+ * 
+ * @param[in]   h_src1          Prima matrice di input
+ * @param[in]   h_src2          Seconda matrice di input
+ * @param[out]  h_dst           Matrice destinazione
+ * @param[in]   kernel_size     Dimensione del kernel
+ * @param[in]   matrix_rows     Altezza delle due matrici \p src1, \p src2
+ * @param[in]   matrix_cols     Lunghezza delle due matrici \p src1, \p src2
+ * @param[in]   block_dim_x     Dimensioni del blocco di thread lungo la dimensione x
+ * @param[in]   block_dim_y     Dimensioni del blocco di thread lungo la dimensione y
+ * 
+ * 
+ * 
+ * @return void
+*/
+template <typename T>
+__host__ void sharedMemoryCrossCorrelation(T              *h_src1, 
+                                           T              *h_src2,
+                                           T              *h_dest,
+                                           std::size_t    kernel_size, 
+                                           std::size_t    matrix_rows,
+                                           std::size_t    matrix_cols,
+                                           std::size_t    block_dim_x,
+                                           std::size_t    block_dim_y)
+{
+    T *d_src1, *d_src2, *d_dest;
+
+    std::size_t src_size{matrix_rows * matrix_cols * sizeof(T)};
+    float dest_rows = matrix_rows - (kernel_size - 1);
+    float dest_cols = matrix_cols - (kernel_size - 1);
+    std::size_t dest_size{dest_rows * dest_cols * sizeof(T)};
+    
+    dim3 dimGrid(ceil(float(matrix_cols) / block_dim_y), ceil(float(matrix_rows) / block_dim_x), 1);
+    dim3 dimBlock(block_dim_y, block_dim_x, 1);
+
+    cudaError_t err = cudaMalloc((void**)&d_src1, src_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
+    err = cudaMemcpy(d_src1, h_src1, src_size, cudaMemcpyHostToDevice);
+    checkCudaError(err, "cudaMemcpy", __LINE__);
+
+    err = cudaMalloc((void**)&d_src2, src_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
+    err = cudaMemcpy(d_src2, h_src2, src_size, cudaMemcpyHostToDevice);
+    checkCudaError(err, "cudaMemcpy", __LINE__);
+
+    err = cudaMalloc((void**)&d_dest, dest_size);
+    checkCudaError(err, "cudaMalloc", __LINE__);
+
+    sharedMemoryCrossCorrelationKernel<T><<<dimGrid, dimBlock, 2 * ((block_dim_y + 2 * (kernel_size / 2)) * matrix_cols) * sizeof(T)>>>(d_src1, d_src2, d_dest, kernel_size, matrix_rows, matrix_cols);
 
     cudaDeviceSynchronize();
 

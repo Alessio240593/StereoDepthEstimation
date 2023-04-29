@@ -23,7 +23,7 @@
  * @file    test_seq_par.hpp
  * @author  Alessio Zattoni
  * @date 
- * @brief   Questo file contiene delle funzioni per il test della versione sequenziale e parallela della cross-correlazione
+ * @brief   Questo file contiene delle funzioni per il benchmark della versione sequenziale e parallela della cross-correlazione
  *
  * ...
  */
@@ -41,8 +41,6 @@
 
 // Indica il range di valori con cui verrà riempita la matrice → da 0 a RANGE -1
 #define RANGE           50
-// Indica il numero di iterazioni eseguite per ogni implementazione dell'algoritmo di cross correlazione
-#define ITERATION       100
 
 // Rappresenta una matrice in formato standard es(HD, 2k, 4K)
 namespace format {
@@ -93,16 +91,20 @@ const static std::vector<format::standardFormat> form = {   {1344, 376},
  * @param[in]   kernel_size Dimensione del kernel
  * @param[in]   block_dim_x Dimensione del blocco di thread lungo la coordinata x
  * @param[in]   block_dim_y Dimensione del blocco di thread lungo la coordinata y
+ * @param[in]   path        Path dove verranno savati i risultati del benchmark
+ * @param[in]   iterations  Numero di iterazioni eseguite per ogni versione dell'algoritmo
  * 
  * 
  * @return void
 */
 template <typename T>
 void benchmark(std::size_t  rows, 
-               std::size_t  cols, 
+               std::size_t  cols,
                std::size_t  kernel_size, 
                std::size_t  block_dim_x,
-               std::size_t  block_dim_y)
+               std::size_t  block_dim_y,
+               std::string  path,
+               std::size_t iterations)
 {
     T *src1 = new T[rows * cols];
     T *src2 = new T[rows * cols];
@@ -114,7 +116,7 @@ void benchmark(std::size_t  rows,
     // benchmark versione sequenziale senza copia
     parco::analysis::TimeVector<double> _seq;
 
-    for (size_t i = 0; i < ITERATION; i++) {
+    for (size_t i = 0; i < iterations; i++) {
         _seq.start();
         argMaxCorrMat<T>(src1, src2, dest, cols, rows, kernel_size);
         _seq.stop();
@@ -123,7 +125,7 @@ void benchmark(std::size_t  rows,
     // benchmark versione sequenziale con copia
     parco::analysis::TimeVector<double> _seq_c;
 
-    for (size_t i = 0; i < ITERATION; i++) {
+    for (size_t i = 0; i < iterations; i++) {
         _seq_c.start();
         argMaxCorrMatWithCopy<T>(src1, src2, dest, cols, rows, kernel_size);
         _seq_c.stop();
@@ -133,7 +135,7 @@ void benchmark(std::size_t  rows,
     parco::analysis::TimeVector<double> _par;
     double time;
 
-    for (size_t i = 0; i < ITERATION; i++) {
+    for (size_t i = 0; i < iterations; i++) {
         time = crossCorrelationTimeWithoutAllocation<T>(src1, src2, dest, kernel_size, rows, cols, block_dim_x, block_dim_y);
         _par.values().push_back(time);
     }
@@ -141,7 +143,7 @@ void benchmark(std::size_t  rows,
     // benchmark versione parallela con tempi di allocazione
     parco::analysis::TimeVector<double> _par_c;
 
-    for (size_t i = 0; i < ITERATION; i++) {
+    for (size_t i = 0; i < iterations; i++) {
         time = crossCorrelationTimeWithAllocation<T>(src1, src2, dest, kernel_size, rows, cols, block_dim_x, block_dim_y);
         _par_c.values().push_back(time);
     }
@@ -157,7 +159,7 @@ void benchmark(std::size_t  rows,
                ",BlockDim: " + std::to_string(block_dim_x) + "x" + std::to_string(block_dim_y));
 
     matrix_analysis.show_analysis();
-    matrix_analysis.dump_analysis("results");
+    matrix_analysis.dump_analysis(path);
 
     delete [] src1; delete [] src2; delete [] dest;
 }

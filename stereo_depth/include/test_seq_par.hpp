@@ -97,9 +97,24 @@ bool checkAlgorithmConsistency(T            *firstImpl,
     for (std::size_t i = 0; i < rows; i++) {
         for (std::size_t j = 0; j < cols; j++) {
             if (*(firstImpl + (i * cols) + j) != *(secondImpl + (i * cols) + j)) {
-                std::cout << "firstImpl → " << +*(firstImpl + (i * cols) + j) << "\n"
-                          << "secondImpl → " << +*(secondImpl + (i * cols) + j) << "\n"
-                          << "posizione → (" << i << "," << j << ")" << "\n";
+                std::cout << "\n\nseq:\n";
+            for (size_t k = 0; k < rows; k++) {
+                for (size_t l = 0; l < cols; l++) {
+                    std::cout << +*(firstImpl + (k * rows) + l) << " ";
+                }
+                std::cout << std::endl;
+            }
+
+            std::cout << "shmem:\n";
+            for (size_t k = 0; k < rows; k++) {
+                for (size_t l = 0; l < cols; l++) {
+                    std::cout << +*(secondImpl + (k * rows) + l) << " ";
+                }
+                std::cout << std::endl;
+            }
+                // std::cout << "firstImpl → " << +*(firstImpl + (i * cols) + j) << "\n"
+                //           << "secondImpl → " << +*(secondImpl + (i * cols) + j) << "\n"
+                //           << "posizione → (" << i << "," << j << ")" << "\n";
 
                 return false;
             }
@@ -183,7 +198,7 @@ void launchTest(std::size_t src_rows,
     T *seq_dest            = new T[dst_rows * dst_cols];
     T *par_dest            = new T[dst_rows * dst_cols];
     T *seq_dest_copy       = new T[dst_rows * dst_cols];
-    T *par_shared_mem_dest = new T[dst_rows * dst_cols];
+    T *par_dest_shared     = new T[dst_rows * dst_cols];
 
     createMatrix<T>(src1, src_rows, src_cols, range);
     createMatrix<T>(src2, src_rows, src_cols, range);
@@ -194,7 +209,7 @@ void launchTest(std::size_t src_rows,
 
     crossCorrelation<T>(src1, src2, par_dest, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
 
-    sharedMemoryCrossCorrelation<T>(src1, src2, par_shared_mem_dest, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
+    sharedMemoryCrossCorrelation<T>(src1, src2, par_dest_shared, kernel_size, src_rows, src_cols, block_dim_x, block_dim_y);
 
     bool res = checkAlgorithmConsistency(seq_dest, par_dest, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
@@ -202,17 +217,17 @@ void launchTest(std::size_t src_rows,
     res = checkAlgorithmConsistency(seq_dest, seq_dest_copy, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
-    res = checkAlgorithmConsistency(seq_dest, par_shared_mem_dest, dst_rows, dst_cols);
+    res = checkAlgorithmConsistency(seq_dest, par_dest_shared, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
     res = checkAlgorithmConsistency(seq_dest_copy, par_dest, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
-    res = checkAlgorithmConsistency(seq_dest_copy, par_shared_mem_dest, dst_rows, dst_cols);
+    res = checkAlgorithmConsistency(seq_dest_copy, par_dest_shared, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
-    res = checkAlgorithmConsistency(par_dest, par_shared_mem_dest, dst_rows, dst_cols);
+    res = checkAlgorithmConsistency(par_dest, par_dest_shared, dst_rows, dst_cols);
     assertVal<bool>(res, true, src_rows, src_cols, __LINE__);
 
-    delete [] src1; delete [] src2; delete [] seq_dest; delete [] par_dest; delete [] seq_dest_copy; delete [] par_shared_mem_dest;
+    delete [] src1; delete [] src2; delete [] seq_dest; delete [] par_dest; delete [] seq_dest_copy; delete [] par_dest_shared;
 }

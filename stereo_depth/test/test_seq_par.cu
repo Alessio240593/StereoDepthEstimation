@@ -35,40 +35,52 @@
 #include <vector>
 #include <cstring>
 #include <iomanip>
+#include <cmath>
 
 #include <stdlib.h>
 
-#define MIN_SIZE 32
-#define MAX_SIZE 2048
-#define RANGE    50
-#define INC      2
+// this value is infuenced by device specifications 
+#define DEV                  0
+#define MIN_SIZE             32
+#define MAX_SIZE             2048
+#define RANGE                50
+#define INC                  2
 
 
 
 int main()
 {
     // Test vari formati di matrice da MIN_SIZE a MAX_SIZE
-    std::size_t kernel_size = 7;
+    std::size_t kernel_size = 5;
     std::size_t block_dim_x = 8;
     std::size_t block_dim_y = 8;
+
+    cudaSetDevice(DEV);
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, DEV);
+    
+    std::size_t max_thread_per_block = std::sqrt(deviceProp.maxThreadsPerBlock);
+
     for (std::size_t rows_cols = MIN_SIZE; rows_cols <= MAX_SIZE; rows_cols *= INC) {
         launchTest<uint8_t>(rows_cols, rows_cols, kernel_size, block_dim_x, block_dim_y, RANGE);
-        kernel_size += INC;
-        block_dim_x *= INC;
-        block_dim_y *= INC;
+
+        if (block_dim_x < max_thread_per_block) {
+            block_dim_x *= INC;
+            block_dim_y *= INC;
+        }
     }
 
     // Test di formati di matrice interessanti per il progetto
     // TODO sistemare misure kernel_size per farlo andare più veloce
 
     // 1344 x 376
-    launchTest<uint8_t>(1344, 376, kernel_size, block_dim_x, block_dim_y, RANGE);
+    //launchTest<uint8_t>(1344, 376, kernel_size, block_dim_x, block_dim_y, RANGE);
     // 2560 x 720
-    launchTest<uint8_t>(2560, 720, kernel_size, block_dim_x, block_dim_y, RANGE);
+    //launchTest<uint8_t>(2560, 720, kernel_size, block_dim_x, block_dim_y, RANGE);
     // 3840 x 1080
-    launchTest<uint8_t>(3840, 1080, kernel_size, block_dim_x, block_dim_y, RANGE);
+    //launchTest<uint8_t>(3840, 1080, kernel_size, block_dim_x, block_dim_y, RANGE);
     // 4416 x 1242
-    launchTest<uint8_t>(4416, 1242, kernel_size, block_dim_x, block_dim_y, RANGE);
+    //launchTest<uint8_t>(4416, 1242, kernel_size, block_dim_x, block_dim_y, RANGE);
  
     exit(EXIT_SUCCESS);
 }
