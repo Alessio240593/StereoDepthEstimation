@@ -1,4 +1,4 @@
-# ComputerVision
+# StereoDepthEstimation
 
 ![alt](https://img.shields.io/badge/license-GPLv3.0-success)
 ![alt](https://img.shields.io/badge/version-v1.0-blue)
@@ -8,7 +8,7 @@
 ---
 
 ## Description
-ComputerVision contiene l'implementazione in c++ del calcolo della profondità partendo da una coppia di immagini stereo, il progetto è composto da una versione sequenziale e da una versione parallela. ComputerVision è diviso nelle seguenti parti:
+StereoDepthEstimation contiene l'implementazione in c++ del calcolo della profondità partendo da una coppia di immagini stereo, il progetto è composto da una versione sequenziale e da una versione parallela. ComputerVision è diviso nelle seguenti parti:
 - ***PixelMatching***: contiene l'implementazione dell'algoritmo per il calcolo della matrice delle profondità.
 - ***stereo_calibration***: contiene l'implementazione della calibrazione di un sistema stereo.
 - ***calibration***: contiene l'implementazione della calibrazione di un sistema a singola camera.
